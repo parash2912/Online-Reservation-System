@@ -5,6 +5,7 @@ import os
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from datetime import datetime
+from time import sleep
 
 import webapp2
 import jinja2
@@ -28,7 +29,7 @@ class Owner(ndb.Model):
     email=ndb.StringProperty(indexed=False)
 
 class Resources(ndb.Model):
-    name=ndb.StringProperty(indexed=False)
+    name=ndb.StringProperty(indexed=True)
     owner=ndb.StructuredProperty(Owner)
     startTime=ndb.DateTimeProperty(auto_now_add=False)
     endTime=ndb.DateTimeProperty(auto_now_add=False)
@@ -44,8 +45,7 @@ class MainPage(webapp2.RequestHandler) :
         currHour = datetime.now().hour
         currMinute = datetime.now().minute
         currSecond = datetime.now().second
-        ROOT="ROOT"
-        resources_query=Resources.query(ancestor=resourcebook_key(ROOT)).order(-Resources.lastReservedTime)
+        resources_query=Resources.query().order(-Resources.lastReservedTime)
         allresources=resources_query.fetch()
         
         if user:
@@ -72,9 +72,28 @@ class MainPage(webapp2.RequestHandler) :
         else:
             self.redirect(users.create_login_url(self.request.uri))
 
+class ResourcePage(webapp2.RequestHandler):
+    def get(self):
+        resourceName = self.request.get('resourceName')
+        ROOT=self.request.get('resourceKey')
+        owner_id=self.request.get('owner_id')
+        page=self.request.get('page')
+        if ROOT=="":
+            ROOT=resourceName+owner_id
+        resource_query = Resources.query(ancestor=resourcebook_key(ROOT))
+        resource = resource_query.fetch()
+        user=users.get_current_user()
+        template_values = {
+            'user': user,
+            'resource': resource,
+            'resourceKey': ROOT,
+            'page': page
+        }
+        template = JINJA_ENVIRONMENT.get_template('resourcePage.html')
+        self.response.write(template.render(template_values))
+
 class ResourceAdd(webapp2.RequestHandler):
     def post(self):
-        ROOT="ROOT"
         year = self.request.get('year')
         resourceName = self.request.get('resourceName')
         month = self.request.get('month')
@@ -92,15 +111,16 @@ class ResourceAdd(webapp2.RequestHandler):
         startDateTime24 = datetime.strptime(Date+" "+startTime,"%m/%d/%Y %I:%M:%S %p")
         endTime = endHours+":"+endMinutes+":"+endSeconds+" "+endMorEve
         endDateTime24 = datetime.strptime(Date+" "+endTime,"%m/%d/%Y %I:%M:%S %p")
+        ROOT=resourceName+users.get_current_user().user_id()
         resource = Resources(parent=resourcebook_key(ROOT))
         resource.owner=Owner(
             identity=users.get_current_user().user_id(),
             email=users.get_current_user().email())
-
         resource.name=resourceName
         resource.startTime=startDateTime24
         resource.endTime=endDateTime24
         resource.put()
+        sleep(2)
         page="allres"
         query_params = {'page':page}
         self.redirect('/?'+urllib.urlencode(query_params))
@@ -108,4 +128,5 @@ class ResourceAdd(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/',MainPage),
     ('/createres',ResourceAdd),
+    ('/resourcePage',ResourcePage),
 ],debug=True)

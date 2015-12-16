@@ -113,10 +113,15 @@
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">End Time</div>
              		</div>
-            		
+            	
                 {% for resource in allresources %}
 					<div class="divRow">
-                  		<div class="divCell" align="center"><a href="resourcePage.html">{{resource.name}}</a></div>
+                  		<div class="divCell" align="center">
+                  		<form id='form-{{resource.name}}-{{resource.startTime}}'action="/resourcePage" method="GET">
+                  		<input type="hidden" name="resourceName" value={{resource.name}}>
+                  		<input type="hidden" name="owner_id" value={{resource.owner.identity}}>
+                  		<a href="#" onclick="document.getElementById('form-{{resource.name}}-{{resource.startTime}}').submit()">{{resource.name}}</a></form>
+                  		</div>
                 		<div class="divCell" align="center">{{resource.owner.identity}}</div>
                 		<div class="divCell" align="center">{{resource.owner.email}}</div>
                 		<div class="divCell" align="center">{{resource.startTime}}</div>

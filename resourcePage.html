@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+</head>
+<body>
+	<div class="container">
+
+  		<ul class="nav nav-tabs">
+  			<li class=
+  				{% if page == "currres" %}
+  					active
+  				{% endif %}
+  				><a href="?page=currres&resourceKey={{resourceKey}}">Current Reservations</a></li>
+  			<li class=
+  				{% if page == "res" %}
+  					active
+  				{% endif %}
+  				><a href="?page=res&resourceKey={{resourceKey}}">Reserve</a></li>
+  			{% if user.user_id() == resource[0].owner.identity %} 
+  				<li class=
+  					{% if page == "edit" %}
+  						active
+  					{% endif %}
+  				><a href="?page=edit&resourceKey={{resourceKey}}">Edit</a></li>
+  			{% endif %} 
+  			</ul>
+		<a href="{{url|safe}}">{{ url_linktext }}</a>
+
+	</div>
+</body>
+</html>
+{% endautoescape %}
