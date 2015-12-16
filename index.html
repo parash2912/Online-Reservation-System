@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+</head>
+	<body>
+		<div class="container">
+
+  			<ul class="nav nav-tabs">
+  				<li class=
+  				{% if page == "myres" %}
+  					active
+  				{% endif %}
+  				><a href="?page=myres">My Reservations</a></li>
+  				<li class=
+  				{% if page == "allres" %}
+  					active
+  				{% endif %}
+  				><a href="?page=allres">All Resources</a></li>
+  				<li class=
+  				{% if page == "myreso" %}
+  					active
+  				{% endif %}
+  				><a href="?page=myreso">My Resources</a></li>
+  				<li class=
+  				{% if page == "createres" %}
+  					active
+  				{% endif %}
+  				><a href="?page=createres">Create Resource</a></li>
+			</ul>
+		<a href="{{url|safe}}">{{ url_linktext }}</a>
+
+		</div>
+		<div>
+			{% if page == "createres" %}
+				<form action="/createres" method="post">
+					Resource Name: <input type="text" name="resourceName" value="">
+					<br>
+					Date: 
+
+					<select name="month">
+						{% for option in range(1,13) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+
+					<select name="day">
+						{% for option in range(1,31) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+						
+					<select name="year">
+						{% for option in range(curryear,curryear+100) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+					<br>
+					Start Time: <select name="startHours">
+						{% for option in range(1,13) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+					<select name="startMinutes">
+						{% for option in range(60) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+					<select name="startSeconds">
+						{% for option in range(60) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+					<select name="startMorEve">
+						<option value="AM">AM</option>
+						<option value="PM">PM</option>
+					</select>
+					<br>
+					End Time: <select name="endHours">
+						{% for option in range(1,13) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+					<select name="endMinutes">
+						{% for option in range(60) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+					<select name="endSeconds">
+						{% for option in range(60) %}
+							<option value={{option}}>{{option}}</option>
+						{% endfor %}
+					</select>
+					<select name="endMorEve">
+						<option value="AM">AM</option>
+						<option value="PM">PM</option>
+					</select>
+					<br>
+					<input type="text" name="tags" value="Enter tags ; separated">
+					<br>
+					<input type="submit" value="create">
+				</form>
+			{% endif %}
+
+			{% if page == "allres" %}
+				<div class="divTable">
+             		<div class="rowHeading">
+                		<div class="headCol" align="center">Resource Name</div>
+                		<div  class="headCol" align="center">Owner ID</div>
+                		<div  class="headCol" align="center">Owner Email</div>
+                		<div class="headCol" align="center">Start Time</div>
+                		<div class="headCol" align="center">End Time</div>
+             		</div>
+            		
+                {% for resource in allresources %}
+					<div class="divRow">
+                  		<div class="divCell" align="center"><a href="resourcePage.html">{{resource.name}}</a></div>
+                		<div class="divCell" align="center">{{resource.owner.identity}}</div>
+                		<div class="divCell" align="center">{{resource.owner.email}}</div>
+                		<div class="divCell" align="center">{{resource.startTime}}</div>
+                		<div class="divCell" align="center">{{resource.endTime}}</div>
+            		</div>
+				{% endfor %}
+				</div>
+			{% endif %}
+
+			{% if page == "myreso" %}
+				<div class="divTable">
+             		<div class="rowHeading">
+                		<div class="headCol" align="center">Resource Name</div>
+                		<div  class="headCol" align="center">Owner ID</div>
+                		<div  class="headCol" align="center">Owner Email</div>
+                		<div class="headCol" align="center">Start Time</div>
+                		<div class="headCol" align="center">End Time</div>
+             		</div>
+            		
+                {% for resource in allresources %}
+					{% if resource.owner.identity == user.user_id() %}	<div class="divRow">
+                  			<div class="divCell" align="center">{{resource.name}}</div>
+                			<div class="divCell" align="center">{{resource.owner.identity}}</div>
+                			<div class="divCell" align="center">{{resource.owner.email}}</div>
+                			<div class="divCell" align="center">{{resource.startTime}}</div>
+                			<div class="divCell" align="center">{{resource.endTime}}</div>
+            			</div>
+            		{% endif %}
+				{% endfor %}
+				</div>
+			{% endif %}
+		</div>
+	</body>
+</html>
+{% endautoescape %}
+

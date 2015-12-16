@@ -1,0 +1,54 @@
+body {
+  font-family: Verdana, Helvetica, sans-serif;
+  background-color: #DDDDDD;
+}
+
+.divTable
+    {
+        display: table;
+        width:auto;
+        font-family: Helvetica;
+        background-color:#eee;
+        margin-left: 150px;
+        border:1px solid  #666666;
+        border-spacing:5px;/*cellspacing:poor IE support for  this*/
+       /* border-collapse:separate;*/
+    }
+
+.divRow
+    {
+       display: table-row;
+       width:auto;
+       border:1px solid #666666;
+       border-spacing:5px;
+    }
+
+.rowHeading
+    {
+       color: #800000;
+       display:table-row;
+       width:auto;
+       border:1px solid #666666;
+       border-spacing:5px;
+    }
+
+.divCell
+    {
+        float:left;/*fix for  buggy browsers*/
+        display:table-column;
+        width:200px;
+        background-color:#aebdff;
+        border:1px solid #666666;
+        border-spacing:5px;
+    }
+
+.headCol
+    {
+        float:left;/*fix for  buggy browsers*/
+        display:table-column;
+        width:200px;
+        background-color:#aebdff;
+        border:1px solid #666666;
+        border-spacing:5px;
+        font-weight: bold;
+    }
