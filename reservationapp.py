@@ -54,11 +54,6 @@ class MainPage(webapp2.RequestHandler) :
         page = self.request.get('page') if self.request.get('page') != "" else "myres"
         user=users.get_current_user()
         currYear = datetime.now().year
-        currMonth = datetime.now().month
-        currDate = datetime.now().day
-        currHour = datetime.now().hour
-        currMinute = datetime.now().minute
-        currSecond = datetime.now().second
         resources_query=Resources.query().order(-Resources.lastReservedTime)
         allresources=resources_query.fetch()
         reservation_query = Reservations.query()
@@ -74,11 +69,6 @@ class MainPage(webapp2.RequestHandler) :
                 'url_linktext': url_linktext,
                 'page': page,
                 'curryear': currYear,
-                'currmonth': currMonth,
-                'currdate': currDate,
-                'currhour': currHour,
-                'currminute': currMinute,
-                'currsecond': currSecond,
                 'allresources': allresources,
                 'allreservations': allreservations
             }
@@ -97,6 +87,7 @@ class ResourcePage(webapp2.RequestHandler):
         resource = resource_query.fetch()
         reservation_query = Reservations.query(Reservations.resource_UUID==resource[0].UUID)
         reservations = reservation_query.fetch()
+        currYear = datetime.now().year
         user=users.get_current_user()
         date=datetime.strftime(resource[0].startTime, "%m/%d/%Y")
         resource_startTime=datetime.strftime(resource[0].startTime, "%H:%M:%S")
@@ -131,7 +122,8 @@ class ResourcePage(webapp2.RequestHandler):
             'resource': resource[0],
             'resource_date': date,
             'page': page,
-            'available_times': available_times
+            'available_times': available_times,
+            'curryear': currYear
         }
         template = JINJA_ENVIRONMENT.get_template('resourcePage.html')
         self.response.write(template.render(template_values))
@@ -172,9 +164,14 @@ class ReserveAdd(webapp2.RequestHandler):
         page="myres"
         query_params = {'page':page}
         self.redirect('/?'+urllib.urlencode(query_params))
-        
+
 class ResourceAdd(webapp2.RequestHandler):
     def post(self):
+        UUID = self.request.get('UUID');
+        if UUID!="":
+            resource_query = Resources.query(Resources.UUID==UUID)
+            resource = resource_query.fetch()
+            resource[0].key.delete()        
         year = self.request.get('year')
         resourceName = self.request.get('resourceName')
         month = self.request.get('month')
@@ -211,4 +208,5 @@ app = webapp2.WSGIApplication([
     ('/createres',ResourceAdd),
     ('/resourcePage',ResourcePage),
     ('/reserve',ReserveAdd),
+    ('/editres',ResourceAdd),
 ],debug=True)
