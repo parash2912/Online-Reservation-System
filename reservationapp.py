@@ -95,13 +95,43 @@ class ResourcePage(webapp2.RequestHandler):
         page=self.request.get('page')
         resource_query = Resources.query(Resources.UUID==UUID)
         resource = resource_query.fetch()
+        reservation_query = Reservations.query(Reservations.resource_UUID==resource[0].UUID)
+        reservations = reservation_query.fetch()
         user=users.get_current_user()
         date=datetime.strftime(resource[0].startTime, "%m/%d/%Y")
+        resource_startTime=datetime.strftime(resource[0].startTime, "%H:%M:%S")
+        resource_endTime=datetime.strftime(resource[0].endTime, "%H:%M:%S")
+        available_times = [(resource_startTime,resource_endTime)]
+        for reservation in reservations:
+            reservation_startTime = datetime.strftime(reservation.startTime, "%H:%M:%S")
+            reservation_duration = reservation.duration.split(":")
+            durdelta = timedelta(hours=int(reservation_duration[0]),minutes=int(reservation_duration[1]),seconds=int(reservation_duration[2]))
+            endTime = reservation.startTime + durdelta
+            reservation_endTime = datetime.strftime(endTime, "%H:%M:%S")
+            for timeTuple in available_times:
+                if timeTuple[0] <= reservation_startTime and timeTuple[1] >= reservation_endTime:
+                    tupleTemp = timeTuple
+                    available_times.remove(timeTuple)
+                    if timeTuple[0] == reservation_startTime and timeTuple[1] > reservation_endTime:
+                        tempTuple = (reservation_endTime,timeTuple[1])
+                        available_times.append(tempTuple)
+
+                    if timeTuple[0] < reservation_startTime and timeTuple[1] == reservation_endTime:
+                        tempTuple = (timeTuple[0],reservation_startTime)
+                        available_times.append(tempTuple)
+
+                    if timeTuple[0] < reservation_startTime and timeTuple[1] > reservation_endTime:
+                        tempTuple1 = (timeTuple[0],reservation_startTime)
+                        tempTuple2 = (reservation_endTime,timeTuple[1])
+                        available_times.append(tempTuple1)
+                        available_times.append(tempTuple2)
+                                
         template_values = {
             'user': user,
             'resource': resource[0],
             'resource_date': date,
-            'page': page
+            'page': page,
+            'available_times': available_times
         }
         template = JINJA_ENVIRONMENT.get_template('resourcePage.html')
         self.response.write(template.render(template_values))

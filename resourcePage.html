@@ -31,45 +31,48 @@
 	</div>
 	<div>
 		{% if page == "res" %}
-			<form action="/reserve" method="post">
+			<form action="/reserve" id="reserve-form" method="post" onsubmit="return validate()">
+				Available Times: {{available_times}}
+				<br>
 				Resource Name: {{resource.name}}
 				<br>
 				Date: {{resource_date}}
 				<br>
+				<p id="errorTime" style="display: none; color: red">Please enter the start time and duration as per the listed available times!</p>
 				<input type="hidden" name="resource_UUID" value={{resource.UUID}}>
-				<input type="hidden" name="resource_date" value={{resource_date}}>
+				<input type="hidden" id="resource_date" name="resource_date" value={{resource_date}}>
 				<input type="hidden" name="resource_name" value={{resource.name}}>
-				Start Time: <select name="startHours">
+				Start Time: <select name="startHours" id="strthrs">
 					{% for option in range(1,13) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
-				<select name="startMinutes">
+				<select name="startMinutes" id="strtmins">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
-				<select name="startSeconds">
+				<select name="startSeconds" id="strtsecs">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
-				<select name="startMorEve">
+				<select name="startMorEve" id="strtampm">
 					<option value="AM">AM</option>
 					<option value="PM">PM</option>
 				</select>
 				<br>
-				Duration: <select name="durHours">
+				Duration: <select name="durHours" id="durHours">
 					{% for option in range(13) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
-				<select name="durMinutes">
+				<select name="durMinutes" id="durMins">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
-				<select name="durSeconds">
+				<select name="durSeconds" id="durSecs">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
@@ -77,6 +80,44 @@
 				<br>
 				<input type="submit" value="reserve">
 			</form>
+			<script type="text/javascript">
+					var validate=function(){
+						var strthrs = document.getElementById('strthrs').value;
+						var strtmins = document.getElementById('strtmins').value;
+						var strtsecs = document.getElementById('strtsecs').value;
+						var strtampm = document.getElementById('strtampm').value;
+						var strthrsInt = parseInt(strthrs);
+						if(strtampm == "PM"){
+							strthrsInt += 12;
+						}
+						var date = document.getElementById('resource_date').value;
+						var date1=date.split('/').join('-');
+						var selectedStartTime = date1+' '+strthrsInt+":"+strtmins+":"+strtsecs;
+						var selStartDateTime = new Date(selectedStartTime);
+						var durHours = document.getElementById('durHours').value;
+						var durMins = document.getElementById('durMins').value;
+						var durSecs = document.getElementById('durSecs').value;
+						var durMinsInt = parseInt(durMins)
+						durMinsInt += (parseInt(durHours) * 60) + (parseInt(durSecs) / 60);
+						var selEndDateTime = new Date(selStartDateTime.getTime() + durMinsInt * 60000);
+						var flag=false;
+						{% for timeTuple in available_times %}
+							var startDateAv = date1 + ' ' + "{{timeTuple[0]}}";
+							var endDateAv = date1 + ' ' + "{{timeTuple[1]}}";
+							var startDateAvail = new Date(startDateAv);
+							var endDateAvail = new Date(endDateAv);
+							if(selStartDateTime >= startDateAvail && selEndDateTime <= endDateAvail) {
+								flag = true;
+							}
+						{% endfor %} 
+						if(flag == false) {
+							document.getElementById('errorTime').style.display="block";
+							return false;
+						} else {
+							return true;
+						}
+					}
+				</script>
 		{% endif %}
 	</div>
 </body>
