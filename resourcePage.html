@@ -29,10 +29,12 @@
   		</ul>
 		<a href="{{url|safe}}">{{ url_linktext }}</a>
 	</div>
-	<div>
+	<div class="leaveMargin">
 		{% if page == "res" %}
 			<form action="/reserve" id="reserve-form" method="post" onsubmit="return validate()">
-				Available Times: {{available_times}}
+				Available Times (start-hours:start-minutes:start-seconds - end-hours:end-minutes:end-seconds):
+				<span id="AvailTimes"></span> 
+				
 				<br>
 				Resource Name: {{resource.name}}
 				<br>
@@ -79,6 +81,56 @@
 					{% endfor %}
 				</select>
 				<br>
+				<script>
+					var availtable = "<div class=divTable><div class=divRow>"
+					var currTime = new Date();
+					var startDate = "{{resource_date}}"+' '+"0:0:0";
+					var startDateTime1 = new Date(startDate);
+					var currHours = currTime.getHours();
+					var currampm="AM";
+					if(currHours > 12) {
+						currHours -= 12;
+						currampm = "PM";
+					}
+						
+					{% for timeTuple in available_times %}
+						var startTime = "{{resource_date}}"+' '+"{{timeTuple[0]}}";
+						var startDateTime = new Date(startTime);
+						var endTime = "{{resource_date}}"+' '+"{{timeTuple[1]}}";
+						var endDateTime = new Date(endTime);
+						var startampm="AM";
+						var endampm="AM";
+						var startHours = startDateTime.getHours();
+						var endHours = endDateTime.getHours();
+						if(startHours > 12) {
+							startHours -= 12;
+							startampm = "PM";
+						}
+						if(endHours > 12) {
+							endHours -= 12;
+							endampm = "PM";
+						}
+						if(startDateTime < currTime) {
+							if(endDateTime < currTime) {
+								{{continue}}
+							} else {
+								
+								availtable+="<div class=divCell align=center> "+currHours+":"+currTime.getMinutes()+":"+currTime.getSeconds()+" "+currampm+" - "+endHours+":"+endDateTime.getMinutes()+":"+endDateTime.getSeconds()+" "+endampm+" </div>";
+							}
+						} else {
+							availtable+="<div class=divCell align=center> "+startHours+":"+startDateTime.getMinutes()+":"+startDateTime.getSeconds()+" "+startampm+" - "+endHours+":"+endDateTime.getMinutes()+":"+endDateTime.getSeconds()+" "+endampm+"</div> ";
+						}	
+					{% endfor %}
+					availtable+="</div></div>";
+					document.getElementById('AvailTimes').innerHTML = availtable;
+								
+					if(startDateTime1.getMonth() == currTime.getMonth() && startDateTime1.getDate() == currTime.getDate() && startDateTime1.getFullYear() == currTime.getFullYear()) {
+						document.getElementById('strthrs').value = currHours;
+						document.getElementById('strtmins').value = currTime.getMinutes();
+						document.getElementById('strtsecs').value = currTime.getSeconds();
+						document.getElementById('strtampm').value = currampm;
+					}
+				</script>
 				<input type="submit" value="reserve">
 			</form>
 			<script type="text/javascript">
@@ -110,6 +162,13 @@
 							var endDateAv = date1 + ' ' + "{{timeTuple[1]}}";
 							var startDateAvail = new Date(startDateAv);
 							var endDateAvail = new Date(endDateAv);
+							var currTime = new Date();
+							if(startDateAvail < currTime && endDateAvail < currTime) {
+								{{continue}}
+							} 
+							if(startDateAvail < currTime) {
+								startDateAvail = currTime;
+							}
 							if(selStartDateTime >= startDateAvail && selEndDateTime <= endDateAvail) {
 								flag = true;
 							}

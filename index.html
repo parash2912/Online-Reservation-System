@@ -168,6 +168,7 @@
                 		<div  class="headCol" align="center">Owner Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">End Time</div>
+                		<div class="headCol" align="center">Last Reserved</div>
              		</div>
             	
                 {% for resource in allresources %}
@@ -181,6 +182,7 @@
                 		<div class="divCell" align="center">{{resource.owner.email}}</div>
                 		<div class="divCell" align="center">{{resource.startTime}}</div>
                 		<div class="divCell" align="center">{{resource.endTime}}</div>
+                		<div class="divCell" align="center">{{resource.lastReservedTime}}</div>
             		</div>
 				{% endfor %}
 				</div>

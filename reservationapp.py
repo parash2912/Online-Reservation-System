@@ -160,6 +160,10 @@ class ReserveAdd(webapp2.RequestHandler):
         reservation.resource_UUID=resource_UUID
         reservation.resource_name=resource_name
         reservation.put()
+        resource_query = Resources.query(Resources.UUID==resource_UUID)
+        resource = resource_query.fetch()
+        resource[0].lastReservedTime = datetime.now()
+        resource[0].put()
         sleep(2)
         page="myres"
         query_params = {'page':page}
