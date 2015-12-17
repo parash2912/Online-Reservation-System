@@ -33,75 +33,131 @@
 		<a href="{{url|safe}}">{{ url_linktext }}</a>
 
 		</div>
-		<div>
+		<div class="leaveMargin">
 			{% if page == "createres" %}
-				<form action="/createres" method="post">
-					Resource Name: <input type="text" name="resourceName" value="">
+				<form id="createres-form" action="/createres" method="post" onsubmit="return validate()">
+					Resource Name: <input type="text" name="resourceName" required>
 					<br>
+					<br>
+					<p id="errorDate" style="display: none; color: red">The entered date-start time combination is smaller than current date. It should be greater!</p>
 					Date: 
-
-					<select name="month">
+					<select name="month" id="month">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
 
-					<select name="day">
+					<select name="day" id="day">
 						{% for option in range(1,31) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
 						
-					<select name="year">
+					<select name="year" id="year">
 						{% for option in range(curryear,curryear+100) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
 					<br>
-					Start Time: <select name="startHours">
+					<br>
+					Start Time: <select name="startHours" id="strthr">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-					<select name="startMinutes">
+					<select name="startMinutes" id="strtmin">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-					<select name="startSeconds">
+					<select name="startSeconds" id="strtsec">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-					<select name="startMorEve">
+					<select name="startMorEve" id="strtampm">
 						<option value="AM">AM</option>
 						<option value="PM">PM</option>
 					</select>
 					<br>
-					End Time: <select name="endHours">
+					<br>
+					<p id="errorTime" style="display: none; color:red">The entered end time is smaller than start time. It should be greater!</p>
+					End Time: <select name="endHours" id="endhr">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-					<select name="endMinutes">
+					<select name="endMinutes" id="endmin">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-					<select name="endSeconds">
+					<select name="endSeconds" id="endsec">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-					<select name="endMorEve">
+					<select name="endMorEve" id="endampm">
 						<option value="AM">AM</option>
 						<option value="PM">PM</option>
 					</select>
+					<br>
 					<br>
 					<input type="text" name="tags" value="Enter tags ; separated">
 					<br>
 					<input type="submit" value="create">
 				</form>
+				<script type="text/javascript">
+					var validate=function(){
+						var currentDate = new Date();
+						var month = document.getElementById('month').value;
+						var day = document.getElementById('day').value;
+						var year = document.getElementById('year').value;
+						var strtampm = document.getElementById('strtampm').value;
+						var endampm = document.getElementById('endampm').value;
+						var strthr = document.getElementById('strthr').value;
+						console.log(strtampm);
+						strthrInt = parseInt(strthr);
+						if(strtampm == "PM") {
+							strthrInt += 12;
+						}
+						//strthr = strthrInt;
+						console.log(strthrInt);
+						var strtmin = document.getElementById('strtmin').value;
+						var strtsec = document.getElementById('strtsec').value;
+						var selectedstrtDate = year+'-'+month+'-'+day+' '+strthrInt+':'+strtmin+':'+strtsec;
+						var selstrtDate = new Date(selectedstrtDate);
+						
+						var endhr = document.getElementById('endhr').value;
+						console.log(endampm);
+						endhrInt = parseInt(endhr);
+						if(endampm == "PM") {
+							endhrInt += 12;
+						}
+						//endhr = endhrInt;
+						var endmin = document.getElementById('endmin').value;
+						var endsec = document.getElementById('endsec').value;
+						var selectedendDate = year+'-'+month+'-'+day+' '+endhrInt+':'+endmin+':'+endsec;
+						var selendDate = new Date(selectedendDate);
+
+						if(selstrtDate < currentDate) {
+							document.getElementById('errorDate').style.display="block";
+							if(selendDate < selstrtDate) {
+							document.getElementById('errorTime').style.display="block";
+							}
+							return false;
+							
+						} 
+						else {
+							if(selendDate < selstrtDate) {
+							document.getElementById('errorTime').style.display="block";
+							return false;
+							} else {
+								document.getElementById('createres-form').submit();
+							} 
+						}
+					}
+				</script>
 			{% endif %}
 
 			{% if page == "allres" %}
@@ -118,8 +174,7 @@
 					<div class="divRow">
                   		<div class="divCell" align="center">
                   		<form id='form-{{resource.name}}-{{resource.startTime}}'action="/resourcePage" method="GET">
-                  		<input type="hidden" name="resourceName" value={{resource.name}}>
-                  		<input type="hidden" name="owner_id" value={{resource.owner.identity}}>
+                  		<input type="hidden" name="UUID" value={{resource.UUID}}>
                   		<a href="#" onclick="document.getElementById('form-{{resource.name}}-{{resource.startTime}}').submit()">{{resource.name}}</a></form>
                   		</div>
                 		<div class="divCell" align="center">{{resource.owner.identity}}</div>
@@ -143,11 +198,36 @@
             		
                 {% for resource in allresources %}
 					{% if resource.owner.identity == user.user_id() %}	<div class="divRow">
-                  			<div class="divCell" align="center">{{resource.name}}</div>
+                  			<div class="divCell" align="center"><form id='form-{{resource.name}}-{{resource.startTime}}'action="/resourcePage" method="GET">
+                  		<input type="hidden" name="UUID" value={{resource.UUID}}>
+                  		<a href="#" onclick="document.getElementById('form-{{resource.name}}-{{resource.startTime}}').submit()">{{resource.name}}</a></form></div>
                 			<div class="divCell" align="center">{{resource.owner.identity}}</div>
                 			<div class="divCell" align="center">{{resource.owner.email}}</div>
                 			<div class="divCell" align="center">{{resource.startTime}}</div>
                 			<div class="divCell" align="center">{{resource.endTime}}</div>
+            			</div>
+            		{% endif %}
+				{% endfor %}
+				</div>
+			{% endif %}
+
+			{% if page == "myres" %}
+				<div class="divTable">
+             		<div class="rowHeading">
+                		<div class="headCol" align="center">Resource Name</div>
+                		<div  class="headCol" align="center">User ID</div>
+                		<div  class="headCol" align="center">User Email</div>
+                		<div class="headCol" align="center">Start Time</div>
+                		<div class="headCol" align="center">Duration</div>
+             		</div>
+            		
+                {% for reservation in allreservations %}
+					{% if reservation.user.identity == user.user_id() %}	<div class="divRow">
+                  			<div class="divCell" align="center">{{reservation.resource_name}}</div>
+                			<div class="divCell" align="center">{{reservation.user.identity}}</div>
+                			<div class="divCell" align="center">{{reservation.user.email}}</div>
+                			<div class="divCell" align="center">{{reservation.startTime}}</div>
+                			<div class="divCell" align="center">{{reservation.duration}}</div>
             			</div>
             		{% endif %}
 				{% endfor %}

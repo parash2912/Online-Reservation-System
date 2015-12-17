@@ -3,6 +3,10 @@ body {
   background-color: #DDDDDD;
 }
 
+.leaveMargin{
+  margin-left: 50px;
+}
+
 .divTable
     {
         display: table;

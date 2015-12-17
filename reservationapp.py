@@ -1,10 +1,12 @@
 import cgi
 import urllib
 import os
+import uuid
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from datetime import datetime
+from datetime import timedelta
 from time import sleep
 
 import webapp2
@@ -29,12 +31,24 @@ class Owner(ndb.Model):
     email=ndb.StringProperty(indexed=False)
 
 class Resources(ndb.Model):
-    name=ndb.StringProperty(indexed=True)
+    UUID=ndb.StringProperty(indexed=True)
+    name=ndb.StringProperty(indexed=False)
     owner=ndb.StructuredProperty(Owner)
     startTime=ndb.DateTimeProperty(auto_now_add=False)
     endTime=ndb.DateTimeProperty(auto_now_add=False)
     lastReservedTime=ndb.DateTimeProperty(auto_now_add=False)
 
+class Reservations(ndb.Model):
+    UUID=ndb.StringProperty(indexed=True)
+    resource_UUID=ndb.StringProperty(indexed=True)
+    resource_name=ndb.StringProperty(indexed=False)
+    user=ndb.StructuredProperty(Owner)
+    startTime=ndb.DateTimeProperty(auto_now_add=False)
+    """
+    endTime=ndb.DateTimeProperty(auto_now_add=False)
+    """
+    duration=ndb.StringProperty(indexed=False)
+    
 class MainPage(webapp2.RequestHandler) :
     def get(self):
         page = self.request.get('page') if self.request.get('page') != "" else "myres"
@@ -47,6 +61,8 @@ class MainPage(webapp2.RequestHandler) :
         currSecond = datetime.now().second
         resources_query=Resources.query().order(-Resources.lastReservedTime)
         allresources=resources_query.fetch()
+        reservation_query = Reservations.query()
+        allreservations=reservation_query.fetch()
         
         if user:
             url=users.create_logout_url(self.request.uri)
@@ -63,7 +79,8 @@ class MainPage(webapp2.RequestHandler) :
                 'currhour': currHour,
                 'currminute': currMinute,
                 'currsecond': currSecond,
-                'allresources': allresources
+                'allresources': allresources,
+                'allreservations': allreservations
             }
 
             template = JINJA_ENVIRONMENT.get_template('index.html')
@@ -74,24 +91,58 @@ class MainPage(webapp2.RequestHandler) :
 
 class ResourcePage(webapp2.RequestHandler):
     def get(self):
-        resourceName = self.request.get('resourceName')
-        ROOT=self.request.get('resourceKey')
-        owner_id=self.request.get('owner_id')
+        UUID=self.request.get('UUID')
         page=self.request.get('page')
-        if ROOT=="":
-            ROOT=resourceName+owner_id
-        resource_query = Resources.query(ancestor=resourcebook_key(ROOT))
+        resource_query = Resources.query(Resources.UUID==UUID)
         resource = resource_query.fetch()
         user=users.get_current_user()
+        date=datetime.strftime(resource[0].startTime, "%m/%d/%Y")
         template_values = {
             'user': user,
-            'resource': resource,
-            'resourceKey': ROOT,
+            'resource': resource[0],
+            'resource_date': date,
             'page': page
         }
         template = JINJA_ENVIRONMENT.get_template('resourcePage.html')
         self.response.write(template.render(template_values))
 
+class ReserveAdd(webapp2.RequestHandler):
+    def post(self):
+        resource_name = self.request.get('resource_name')
+        resource_date = self.request.get('resource_date')
+        resource_UUID = self.request.get('resource_UUID')
+        startHours = self.request.get('startHours')
+        startMinutes = self.request.get('startMinutes')
+        startSeconds = self.request.get('startSeconds')
+        startMorEve = self.request.get('startMorEve')
+        durHours = self.request.get('durHours')
+        durMinutes = self.request.get('durMinutes')
+        durSeconds = self.request.get('durSeconds')
+        startTime = startHours+":"+startMinutes+":"+startSeconds+" "+startMorEve
+        startDateTime24 = datetime.strptime(resource_date+" "+startTime,"%m/%d/%Y %I:%M:%S %p")
+        """
+        durdelta = timedelta(hours=int(durHours),minutes=int(durMinutes),seconds=int(durSeconds))
+        endDateTime24 = startDateTime24 + durdelta
+        """
+        reservation = Reservations()
+        reservation.user = Owner(
+            identity=users.get_current_user().user_id(),
+            email=users.get_current_user().email())
+        reservation.startTime=startDateTime24
+        """
+        reservation.endTime=endDateTime24
+        """
+        duration=durHours+":"+durMinutes+":"+durSeconds
+        reservation.duration=duration
+        reservation.UUID=str(uuid.uuid4())
+        reservation.resource_UUID=resource_UUID
+        reservation.resource_name=resource_name
+        reservation.put()
+        sleep(2)
+        page="myres"
+        query_params = {'page':page}
+        self.redirect('/?'+urllib.urlencode(query_params))
+        
 class ResourceAdd(webapp2.RequestHandler):
     def post(self):
         year = self.request.get('year')
@@ -111,14 +162,14 @@ class ResourceAdd(webapp2.RequestHandler):
         startDateTime24 = datetime.strptime(Date+" "+startTime,"%m/%d/%Y %I:%M:%S %p")
         endTime = endHours+":"+endMinutes+":"+endSeconds+" "+endMorEve
         endDateTime24 = datetime.strptime(Date+" "+endTime,"%m/%d/%Y %I:%M:%S %p")
-        ROOT=resourceName+users.get_current_user().user_id()
-        resource = Resources(parent=resourcebook_key(ROOT))
+        resource = Resources()
         resource.owner=Owner(
             identity=users.get_current_user().user_id(),
             email=users.get_current_user().email())
         resource.name=resourceName
         resource.startTime=startDateTime24
         resource.endTime=endDateTime24
+        resource.UUID=str(uuid.uuid4())
         resource.put()
         sleep(2)
         page="allres"
@@ -129,4 +180,5 @@ app = webapp2.WSGIApplication([
     ('/',MainPage),
     ('/createres',ResourceAdd),
     ('/resourcePage',ResourcePage),
+    ('/reserve',ReserveAdd),
 ],debug=True)

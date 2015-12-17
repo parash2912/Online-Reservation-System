@@ -7,28 +7,77 @@
 </head>
 <body>
 	<div class="container">
-
   		<ul class="nav nav-tabs">
   			<li class=
   				{% if page == "currres" %}
   					active
   				{% endif %}
-  				><a href="?page=currres&resourceKey={{resourceKey}}">Current Reservations</a></li>
+  				><a href="?page=currres&UUID={{resource.UUID}}">Current Reservations</a></li>
   			<li class=
   				{% if page == "res" %}
   					active
   				{% endif %}
-  				><a href="?page=res&resourceKey={{resourceKey}}">Reserve</a></li>
-  			{% if user.user_id() == resource[0].owner.identity %} 
+  				><a href="?page=res&UUID={{resource.UUID}}">Reserve</a></li>
+  			{% if user.user_id() == resource.owner.identity %} 
   				<li class=
   					{% if page == "edit" %}
   						active
   					{% endif %}
-  				><a href="?page=edit&resourceKey={{resourceKey}}">Edit</a></li>
-  			{% endif %} 
-  			</ul>
+  				><a href="?page=edit&UUID={{resource.UUID}}">Edit</a></li>
+  			{% endif %}
+  			<li><a href="/">Home</a></li>
+  		</ul>
 		<a href="{{url|safe}}">{{ url_linktext }}</a>
-
+	</div>
+	<div>
+		{% if page == "res" %}
+			<form action="/reserve" method="post">
+				Resource Name: {{resource.name}}
+				<br>
+				Date: {{resource_date}}
+				<br>
+				<input type="hidden" name="resource_UUID" value={{resource.UUID}}>
+				<input type="hidden" name="resource_date" value={{resource_date}}>
+				<input type="hidden" name="resource_name" value={{resource.name}}>
+				Start Time: <select name="startHours">
+					{% for option in range(1,13) %}
+						<option value={{option}}>{{option}}</option>
+					{% endfor %}
+				</select>
+				<select name="startMinutes">
+					{% for option in range(60) %}
+						<option value={{option}}>{{option}}</option>
+					{% endfor %}
+				</select>
+				<select name="startSeconds">
+					{% for option in range(60) %}
+						<option value={{option}}>{{option}}</option>
+					{% endfor %}
+				</select>
+				<select name="startMorEve">
+					<option value="AM">AM</option>
+					<option value="PM">PM</option>
+				</select>
+				<br>
+				Duration: <select name="durHours">
+					{% for option in range(13) %}
+						<option value={{option}}>{{option}}</option>
+					{% endfor %}
+				</select>
+				<select name="durMinutes">
+					{% for option in range(60) %}
+						<option value={{option}}>{{option}}</option>
+					{% endfor %}
+				</select>
+				<select name="durSeconds">
+					{% for option in range(60) %}
+						<option value={{option}}>{{option}}</option>
+					{% endfor %}
+				</select>
+				<br>
+				<input type="submit" value="reserve">
+			</form>
+		{% endif %}
 	</div>
 </body>
 </html>
