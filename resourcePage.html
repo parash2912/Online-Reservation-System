@@ -62,6 +62,7 @@
 					<option value="PM">PM</option>
 				</select>
 				<br>
+				<p id="durError" style="display: none; color: red">Duration cannot be zero!</p>
 				Duration: <select name="durHours" id="durHours">
 					{% for option in range(13) %}
 						<option value={{option}}>{{option}}</option>
@@ -97,6 +98,10 @@
 						var durHours = document.getElementById('durHours').value;
 						var durMins = document.getElementById('durMins').value;
 						var durSecs = document.getElementById('durSecs').value;
+						if(parseInt(durHours)==0 && parseInt(durMins)==0 && parseInt(durSecs)==0) {
+							document.getElementById('durError').style.display="block";
+							return false;
+						}
 						var durMinsInt = parseInt(durMins)
 						durMinsInt += (parseInt(durHours) * 60) + (parseInt(durSecs) / 60);
 						var selEndDateTime = new Date(selStartDateTime.getTime() + durMinsInt * 60000);
