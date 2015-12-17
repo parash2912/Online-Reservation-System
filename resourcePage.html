@@ -98,12 +98,11 @@
 						var durHours = document.getElementById('durHours').value;
 						var durMins = document.getElementById('durMins').value;
 						var durSecs = document.getElementById('durSecs').value;
+						var durMinsInt = parseInt(durMins)
 						if(parseInt(durHours)==0 && parseInt(durMins)==0 && parseInt(durSecs)==0) {
 							document.getElementById('durError').style.display="block";
-							return false;
+							durMinsInt += (parseInt(durHours) * 60) + (parseInt(durSecs) / 60);
 						}
-						var durMinsInt = parseInt(durMins)
-						durMinsInt += (parseInt(durHours) * 60) + (parseInt(durSecs) / 60);
 						var selEndDateTime = new Date(selStartDateTime.getTime() + durMinsInt * 60000);
 						var flag=false;
 						{% for timeTuple in available_times %}
@@ -117,10 +116,10 @@
 						{% endfor %} 
 						if(flag == false) {
 							document.getElementById('errorTime').style.display="block";
-							return false;
 						} else {
 							return true;
 						}
+						return false;
 					}
 				</script>
 		{% endif %}
