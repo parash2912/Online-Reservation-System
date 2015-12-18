@@ -123,7 +123,8 @@ class ResourcePage(webapp2.RequestHandler):
             'resource_date': date,
             'page': page,
             'available_times': available_times,
-            'curryear': currYear
+            'curryear': currYear,
+            'resource_reservations': reservations
         }
         template = JINJA_ENVIRONMENT.get_template('resourcePage.html')
         self.response.write(template.render(template_values))

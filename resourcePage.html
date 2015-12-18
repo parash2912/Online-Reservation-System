@@ -41,9 +41,9 @@
 				Date: {{resource_date}}
 				<br>
 				<p id="errorTime" style="display: none; color: red">Please enter the start time and duration as per the listed available times!</p>
-				<input type="hidden" name="resource_UUID" value={{resource.UUID}}>
+				<input type="hidden" name="resource_UUID" value="{{resource.UUID}}">
 				<input type="hidden" id="resource_date" name="resource_date" value={{resource_date}}>
-				<input type="hidden" name="resource_name" value={{resource.name}}>
+				<input type="hidden" name="resource_name" value="{{resource.name}}">
 				Start Time: <select name="startHours" id="strthrs">
 					{% for option in range(1,13) %}
 						<option value={{option}}>{{option}}</option>
@@ -113,6 +113,7 @@
 						if(startDateTime < currTime) {
 							if(endDateTime < currTime) {
 								{{continue}}
+								console.log("endDateTime");
 							} else {
 								
 								availtable+="<div class=divCell align=center> "+currHours+":"+currTime.getMinutes()+":"+currTime.getSeconds()+" "+currampm+" - "+endHours+":"+endDateTime.getMinutes()+":"+endDateTime.getSeconds()+" "+endampm+" </div>";
@@ -150,10 +151,13 @@
 						var durHours = document.getElementById('durHours').value;
 						var durMins = document.getElementById('durMins').value;
 						var durSecs = document.getElementById('durSecs').value;
-						var durMinsInt = parseInt(durMins)
+						var durMinsInt = parseInt(durMins);
 						if(parseInt(durHours)==0 && parseInt(durMins)==0 && parseInt(durSecs)==0) {
 							document.getElementById('durError').style.display="block";
-							durMinsInt += (parseInt(durHours) * 60) + (parseInt(durSecs) / 60);
+						} 
+						durMinsInt += (parseInt(durHours) * 60);
+						if(parseInt(durSecs)!=0) {
+							durMinsInt += (parseInt(durSecs) / 60);
 						}
 						var selEndDateTime = new Date(selStartDateTime.getTime() + durMinsInt * 60000);
 						var flag=false;
@@ -338,7 +342,50 @@
 						}
 					}
 				</script>
+		{% endif %}
+
+		{% if page == "currres" %}
+				<div class="divTable">
+             		<div class="rowHeading">
+                		<div class="headCol" align="center">Resource Name</div>
+                		<div  class="headCol" align="center">User ID</div>
+                		<div  class="headCol" align="center">User Email</div>
+                		<div class="headCol" align="center">Start Time</div>
+                		<div class="headCol" align="center">Duration</div>
+             		</div>
+            		
+                {% for reservation in resource_reservations %}
+						<div class="divRow" id="resrow{{reservation.UUID}}">
+                  		<div class="divCell" align="center"><form id='form-{{reservation.resource_UUID}}'action="/resourcePage" method="GET">
+                  		<input type="hidden" name="UUID" value={{reservation.resource_UUID}}>
+                  		<a href="#" onclick="document.getElementById('form-{{reservation.resource_UUID}}').submit()">{{reservation.resource_name}}</a></form></div>
+                			<div class="divCell" align="center">{{reservation.user.identity}}</div>
+                			<div class="divCell" align="center">{{reservation.user.email}}</div>
+                			<div class="divCell" align="center">{{reservation.startTime}}</div>
+                			<div class="divCell" align="center">{{reservation.duration}}</div>
+            			</div>
+            		<script>
+            			var currtime = new Date();
+            			var startTime = new Date("{{reservation.startTime}}");
+            			var duration = "{{reservation.duration}}";
+            			var durationarr = duration.split(":");
+            			var durHours = durationarr[0];
+						var durMins = durationarr[1];
+						var durSecs = durationarr[2];
+						var durMinsInt = parseInt(durMins);
+						durMinsInt += (parseInt(durHours) * 60);
+						if(parseInt(durSecs)!=0) {
+							durMinsInt += (parseInt(durSecs) / 60);
+						}
+						var selEndDateTime = new Date(startTime.getTime() + durMinsInt * 60000);
+						if(selEndDateTime < currtime) {
+							document.getElementById('resrow{{reservation.UUID}}').style.display="none";
+						}
+            		</script>
+				{% endfor %}
+				</div>
 			{% endif %}
+
 	</div>
 </body>
 </html>

@@ -174,9 +174,9 @@
                 {% for resource in allresources %}
 					<div class="divRow">
                   		<div class="divCell" align="center">
-                  		<form id='form-{{resource.name}}-{{resource.startTime}}'action="/resourcePage" method="GET">
+                  		<form id='form-{{resource.UUID}}'action="/resourcePage" method="GET">
                   		<input type="hidden" name="UUID" value={{resource.UUID}}>
-                  		<a href="#" onclick="document.getElementById('form-{{resource.name}}-{{resource.startTime}}').submit()">{{resource.name}}</a></form>
+                  		<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a></form>
                   		</div>
                 		<div class="divCell" align="center">{{resource.owner.identity}}</div>
                 		<div class="divCell" align="center">{{resource.owner.email}}</div>
@@ -200,9 +200,9 @@
             		
                 {% for resource in allresources %}
 					{% if resource.owner.identity == user.user_id() %}	<div class="divRow">
-                  			<div class="divCell" align="center"><form id='form-{{resource.name}}-{{resource.startTime}}'action="/resourcePage" method="GET">
+                  			<div class="divCell" align="center"><form id='form-{{resource.UUID}}'action="/resourcePage" method="GET">
                   		<input type="hidden" name="UUID" value={{resource.UUID}}>
-                  		<a href="#" onclick="document.getElementById('form-{{resource.name}}-{{resource.startTime}}').submit()">{{resource.name}}</a></form></div>
+                  		<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a></form></div>
                 			<div class="divCell" align="center">{{resource.owner.identity}}</div>
                 			<div class="divCell" align="center">{{resource.owner.email}}</div>
                 			<div class="divCell" align="center">{{resource.startTime}}</div>
@@ -224,14 +224,35 @@
              		</div>
             		
                 {% for reservation in allreservations %}
-					{% if reservation.user.identity == user.user_id() %}	<div class="divRow">
-                  			<div class="divCell" align="center">{{reservation.resource_name}}</div>
+					{% if reservation.user.identity == user.user_id() %}
+						<div class="divRow" id="resrow{{reservation.UUID}}">
+                  			<div class="divCell" align="center"><form id='form-{{reservation.resource_UUID}}'action="/resourcePage" method="GET">
+                  		<input type="hidden" name="UUID" value={{reservation.resource_UUID}}>
+                  		<a href="#" onclick="document.getElementById('form-{{reservation.resource_UUID}}').submit()">{{reservation.resource_name}}</a></form></div>
                 			<div class="divCell" align="center">{{reservation.user.identity}}</div>
                 			<div class="divCell" align="center">{{reservation.user.email}}</div>
                 			<div class="divCell" align="center">{{reservation.startTime}}</div>
                 			<div class="divCell" align="center">{{reservation.duration}}</div>
             			</div>
             		{% endif %}
+            		<script>
+            			var currtime = new Date();
+            			var startTime = new Date("{{reservation.startTime}}");
+            			var duration = "{{reservation.duration}}";
+            			var durationarr = duration.split(":");
+            			var durHours = durationarr[0];
+						var durMins = durationarr[1];
+						var durSecs = durationarr[2];
+						var durMinsInt = parseInt(durMins);
+						durMinsInt += (parseInt(durHours) * 60);
+						if(parseInt(durSecs)!=0) {
+							durMinsInt += (parseInt(durSecs) / 60);
+						}
+						var selEndDateTime = new Date(startTime.getTime() + durMinsInt * 60000);
+						if(selEndDateTime < currtime) {
+							document.getElementById('resrow{{reservation.UUID}}').style.display="none";
+						}
+            		</script>
 				{% endfor %}
 				</div>
 			{% endif %}
