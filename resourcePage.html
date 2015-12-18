@@ -372,6 +372,15 @@
                 			<div class="divCell" align="center">{{reservation.user.email}}</div>
                 			<div class="divCell" align="center">{{reservation.startTime}}</div>
                 			<div class="divCell" align="center">{{reservation.duration}}</div>
+                			{% if reservation.user.email == user.email() %}
+                				<div class="divCell" align="center">
+                					<form id='formdel-{{reservation.UUID}}'action="/" method="GET">
+                  						<input type="hidden" name="page" value="myres">
+                  						<input type="hidden" name="resUUID" value={{reservation.UUID}}>
+                  						<a href="#" onclick="document.getElementById('formdel-{{reservation.UUID}}').submit()">delete</a>
+                  					</form>
+                  				</div>
+                			{% endif %}
             			</div>
             		<script>
             			var currtime = new Date();
