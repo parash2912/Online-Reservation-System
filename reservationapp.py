@@ -73,7 +73,8 @@ class MainPage(webapp2.RequestHandler) :
         if user:
             url=users.create_logout_url(self.request.uri)
             url_linktext='Logout'
-
+            user1 = user
+            
             if userclicked=="yes":
                 user_email = self.request.get('user_email')
                 user_id = self.request.get('user_id')
@@ -87,7 +88,8 @@ class MainPage(webapp2.RequestHandler) :
                 'curryear': currYear,
                 'allresources': allresources,
                 'allreservations': allreservations,
-                'userclicked': userclicked
+                'userclicked': userclicked,
+                'user_logged': user1
             }
 
             template = JINJA_ENVIRONMENT.get_template('index.html')

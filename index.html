@@ -266,10 +266,15 @@
                 					{% endif %}
                 				{% endfor %}	
                   			</div>
-                			<div class="divCell" align="center"><form id='formdel-{{reservation.UUID}}'action="/" method="GET">
-                  			<input type="hidden" name="page" value="myres">
-                  			<input type="hidden" name="resUUID" value={{reservation.UUID}}>
-                  			<a href="#" onclick="document.getElementById('formdel-{{reservation.UUID}}').submit()">delete</a></form></div>
+                  			{% if user_logged.email() == user.email() %}
+                  				<div class="divCell" align="center">
+                  					<form id='formdel-{{reservation.UUID}}'action="/" method="GET">
+                  						<input type="hidden" name="page" value="myres">
+                  						<input type="hidden" name="resUUID" value={{reservation.UUID}}>
+                  						<a href="#" onclick="document.getElementById('formdel-{{reservation.UUID}}').submit()">delete</a>
+                  					</form>
+                  				</div>
+                  			{% endif %}
             			</div>
             		{% endif %}
             		<script>
