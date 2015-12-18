@@ -58,11 +58,17 @@ class MainPage(webapp2.RequestHandler) :
         allresources=resources_query.fetch()
         reservation_query = Reservations.query()
         allreservations=reservation_query.fetch()
+        userclicked=self.request.get('userclicked')
         
         if user:
             url=users.create_logout_url(self.request.uri)
             url_linktext='Logout'
 
+            if userclicked=="yes":
+                user_email = self.request.get('user_email')
+                user_id = self.request.get('user_id')
+                user = users.User(user_email)
+            
             template_values = {
                 'user': user,
                 'url': url,
@@ -70,7 +76,8 @@ class MainPage(webapp2.RequestHandler) :
                 'page': page,
                 'curryear': currYear,
                 'allresources': allresources,
-                'allreservations': allreservations
+                'allreservations': allreservations,
+                'userclicked': userclicked
             }
 
             template = JINJA_ENVIRONMENT.get_template('index.html')

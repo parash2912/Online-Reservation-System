@@ -13,23 +13,38 @@
   				{% if page == "myres" %}
   					active
   				{% endif %}
-  				><a href="?page=myres">My Reservations</a></li>
-  				<li class=
-  				{% if page == "allres" %}
-  					active
+  				><a id="myrestab" href="?page=myres">My Reservations</a></li>
+  				{% if userclicked != "yes" %}
+  					<li class=
+  					{% if page == "allres" %}
+  						active
+  					{% endif %}
+  					><a href="?page=allres">All Resources</a></li>
   				{% endif %}
-  				><a href="?page=allres">All Resources</a></li>
   				<li class=
   				{% if page == "myreso" %}
   					active
   				{% endif %}
-  				><a href="?page=myreso">My Resources</a></li>
-  				<li class=
-  				{% if page == "createres" %}
-  					active
+  				><a id="myresotab" href="?page=myreso">My Resources</a></li>
+  				{% if userclicked != "yes" %}
+  					<li class=
+  					{% if page == "createres" %}
+  						active
+  					{% endif %}
+  					><a href="?page=createres">Create Resource</a></li>
   				{% endif %}
-  				><a href="?page=createres">Create Resource</a></li>
+  				{% if userclicked == "yes" %}
+  					<li><a href="/">Home</a></li>
+  				{% endif %}
 			</ul>
+			<script>
+				{% if userclicked == "yes" %}
+					document.getElementById('myrestab').innerHTML="Reservations";
+					document.getElementById('myrestab').href="?userclicked=yes&user_email={{user.email()}}&page=myres";
+					document.getElementById('myresotab').innerHTML="Resources";
+					document.getElementById('myresotab').href="?userclicked=yes&user_email={{user.email()}}&page=myreso";
+				{% endif %}
+			</script>
 		<a href="{{url|safe}}">{{ url_linktext }}</a>
 
 		</div>
@@ -179,7 +194,10 @@
                   		<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a></form>
                   		</div>
                 		<div class="divCell" align="center">{{resource.owner.identity}}</div>
-                		<div class="divCell" align="center">{{resource.owner.email}}</div>
+                		<div class="divCell" align="center"><form id='formuser-{{resource.UUID}}'action="/" method="GET">
+                  		<input type="hidden" name="userclicked" value="yes">
+                  		<input type="hidden" name="user_email" value="{{resource.owner.email}}">
+                  		<a href="#" onclick="document.getElementById('formuser-{{resource.UUID}}').submit()">{{resource.owner.email}}</a></form></div>
                 		<div class="divCell" align="center">{{resource.startTime}}</div>
                 		<div class="divCell" align="center">{{resource.endTime}}</div>
                 		<div class="divCell" align="center">{{resource.lastReservedTime}}</div>
@@ -192,19 +210,15 @@
 				<div class="divTable">
              		<div class="rowHeading">
                 		<div class="headCol" align="center">Resource Name</div>
-                		<div  class="headCol" align="center">Owner ID</div>
-                		<div  class="headCol" align="center">Owner Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">End Time</div>
              		</div>
             		
                 {% for resource in allresources %}
-					{% if resource.owner.identity == user.user_id() %}	<div class="divRow">
+					{% if resource.owner.email == user.email() %}	<div class="divRow">
                   			<div class="divCell" align="center"><form id='form-{{resource.UUID}}'action="/resourcePage" method="GET">
                   		<input type="hidden" name="UUID" value={{resource.UUID}}>
                   		<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a></form></div>
-                			<div class="divCell" align="center">{{resource.owner.identity}}</div>
-                			<div class="divCell" align="center">{{resource.owner.email}}</div>
                 			<div class="divCell" align="center">{{resource.startTime}}</div>
                 			<div class="divCell" align="center">{{resource.endTime}}</div>
             			</div>
@@ -217,20 +231,16 @@
 				<div class="divTable">
              		<div class="rowHeading">
                 		<div class="headCol" align="center">Resource Name</div>
-                		<div  class="headCol" align="center">User ID</div>
-                		<div  class="headCol" align="center">User Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">Duration</div>
              		</div>
             		
                 {% for reservation in allreservations %}
-					{% if reservation.user.identity == user.user_id() %}
+					{% if reservation.user.email == user.email() %}
 						<div class="divRow" id="resrow{{reservation.UUID}}">
                   			<div class="divCell" align="center"><form id='form-{{reservation.resource_UUID}}'action="/resourcePage" method="GET">
                   		<input type="hidden" name="UUID" value={{reservation.resource_UUID}}>
                   		<a href="#" onclick="document.getElementById('form-{{reservation.resource_UUID}}').submit()">{{reservation.resource_name}}</a></form></div>
-                			<div class="divCell" align="center">{{reservation.user.identity}}</div>
-                			<div class="divCell" align="center">{{reservation.user.email}}</div>
                 			<div class="divCell" align="center">{{reservation.startTime}}</div>
                 			<div class="divCell" align="center">{{reservation.duration}}</div>
             			</div>
