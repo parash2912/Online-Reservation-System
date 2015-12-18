@@ -37,6 +37,7 @@ class Resources(ndb.Model):
     startTime=ndb.DateTimeProperty(auto_now_add=False)
     endTime=ndb.DateTimeProperty(auto_now_add=False)
     lastReservedTime=ndb.DateTimeProperty(auto_now_add=False)
+    tags=ndb.StringProperty(repeated=True)
 
 class Reservations(ndb.Model):
     UUID=ndb.StringProperty(indexed=True)
@@ -59,6 +60,15 @@ class MainPage(webapp2.RequestHandler) :
         reservation_query = Reservations.query()
         allreservations=reservation_query.fetch()
         userclicked=self.request.get('userclicked')
+        resUUID = self.request.get('resUUID');
+        if resUUID != "":
+            reservation_del_query = Reservations.query(Reservations.UUID==resUUID)
+            reservation_del = reservation_del_query.fetch()
+            reservation_del[0].key.delete()
+            sleep(2)
+            page="myres"
+            query_params = {'page':page}
+            self.redirect('/?'+urllib.urlencode(query_params))
         
         if user:
             url=users.create_logout_url(self.request.uri)
@@ -177,6 +187,17 @@ class ReserveAdd(webapp2.RequestHandler):
         query_params = {'page':page}
         self.redirect('/?'+urllib.urlencode(query_params))
 
+class TagsPage(webapp2.RequestHandler):
+    def get(self):
+        tag = self.request.get('tag')
+        tag_query = Resources.query(Resources.tags==tag)
+        resources = tag_query.fetch()
+        template_values = {
+            'resources': resources,
+        }
+        template = JINJA_ENVIRONMENT.get_template('tagsPage.html')
+        self.response.write(template.render(template_values))
+
 class ResourceAdd(webapp2.RequestHandler):
     def post(self):
         UUID = self.request.get('UUID');
@@ -196,6 +217,8 @@ class ResourceAdd(webapp2.RequestHandler):
         endMinutes = self.request.get('endMinutes')
         endSeconds = self.request.get('endSeconds')
         endMorEve = self.request.get('endMorEve')
+        tags = self.request.get('tags')
+        taglist = tags.split(';')
         startTime = startHours+":"+startMinutes+":"+startSeconds+" "+startMorEve
         Date = month+"/"+day+"/"+year
         startDateTime24 = datetime.strptime(Date+" "+startTime,"%m/%d/%Y %I:%M:%S %p")
@@ -209,6 +232,7 @@ class ResourceAdd(webapp2.RequestHandler):
         resource.startTime=startDateTime24
         resource.endTime=endDateTime24
         resource.UUID=str(uuid.uuid4())
+        resource.tags=taglist
         resource.put()
         sleep(2)
         page="allres"
@@ -221,4 +245,5 @@ app = webapp2.WSGIApplication([
     ('/resourcePage',ResourcePage),
     ('/reserve',ReserveAdd),
     ('/editres',ResourceAdd),
+    ('/tag',TagsPage),
 ],debug=True)

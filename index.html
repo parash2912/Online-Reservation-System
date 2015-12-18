@@ -118,7 +118,8 @@
 					</select>
 					<br>
 					<br>
-					<input type="text" name="tags" value="Enter tags ; separated">
+					<span>Enter tags (; separated)</span>
+					<input type="text" id="tags" name="tags">
 					<br>
 					<input type="submit" value="create">
 				</form>
@@ -179,11 +180,11 @@
 				<div class="divTable">
              		<div class="rowHeading">
                 		<div class="headCol" align="center">Resource Name</div>
-                		<div  class="headCol" align="center">Owner ID</div>
                 		<div  class="headCol" align="center">Owner Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">End Time</div>
                 		<div class="headCol" align="center">Last Reserved</div>
+                		<div class="headCol" align="center">Tags</div>
              		</div>
             	
                 {% for resource in allresources %}
@@ -193,7 +194,6 @@
                   		<input type="hidden" name="UUID" value={{resource.UUID}}>
                   		<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a></form>
                   		</div>
-                		<div class="divCell" align="center">{{resource.owner.identity}}</div>
                 		<div class="divCell" align="center"><form id='formuser-{{resource.UUID}}'action="/" method="GET">
                   		<input type="hidden" name="userclicked" value="yes">
                   		<input type="hidden" name="user_email" value="{{resource.owner.email}}">
@@ -201,6 +201,12 @@
                 		<div class="divCell" align="center">{{resource.startTime}}</div>
                 		<div class="divCell" align="center">{{resource.endTime}}</div>
                 		<div class="divCell" align="center">{{resource.lastReservedTime}}</div>
+
+                		<div class="divCell" align="center">
+                		{% for tag in resource.tags %}
+                			<a href="/tag?tag={{tag}}">{{tag}};</a>
+                  		{% endfor %}
+                  		</div>
             		</div>
 				{% endfor %}
 				</div>
@@ -212,16 +218,23 @@
                 		<div class="headCol" align="center">Resource Name</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">End Time</div>
+                		<div class="headCol" align="center">Tags</div>
              		</div>
             		
                 {% for resource in allresources %}
-					{% if resource.owner.email == user.email() %}	<div class="divRow">
+					{% if resource.owner.email == user.email() %}	
+						<div class="divRow">
                   			<div class="divCell" align="center"><form id='form-{{resource.UUID}}'action="/resourcePage" method="GET">
-                  		<input type="hidden" name="UUID" value={{resource.UUID}}>
-                  		<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a></form></div>
+                  			<input type="hidden" name="UUID" value={{resource.UUID}}>
+                  			<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a></form></div>
                 			<div class="divCell" align="center">{{resource.startTime}}</div>
                 			<div class="divCell" align="center">{{resource.endTime}}</div>
-            			</div>
+            				<div class="divCell" align="center">
+                				{% for tag in resource.tags %}
+                					<a href="/tag?tag={{tag}}">{{tag}};</a>
+                  				{% endfor %}
+                  			</div>
+                  		</div>
             		{% endif %}
 				{% endfor %}
 				</div>
@@ -233,6 +246,8 @@
                 		<div class="headCol" align="center">Resource Name</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">Duration</div>
+                		<div class="headCol" align="center">Tags</div>
+                		<div class="headCol" align="center"></div>
              		</div>
             		
                 {% for reservation in allreservations %}
@@ -243,6 +258,19 @@
                   		<a href="#" onclick="document.getElementById('form-{{reservation.resource_UUID}}').submit()">{{reservation.resource_name}}</a></form></div>
                 			<div class="divCell" align="center">{{reservation.startTime}}</div>
                 			<div class="divCell" align="center">{{reservation.duration}}</div>
+                			<div class="divCell" align="center">
+                				{% for resource in allresources %}
+                					{% if resource.UUID == reservation.resource_UUID %}
+                						{% for tag in resource.tags %}
+                							<a href="/tag?tag={{tag}}">{{tag}};</a>
+                  						{% endfor %}
+                					{% endif %}
+                				{% endfor %}	
+                  			</div>
+                			<div class="divCell" align="center"><form id='formdel-{{reservation.UUID}}'action="/" method="GET">
+                  			<input type="hidden" name="page" value="myres">
+                  			<input type="hidden" name="resUUID" value={{reservation.UUID}}>
+                  			<a href="#" onclick="document.getElementById('formdel-{{reservation.UUID}}').submit()">delete</a></form></div>
             			</div>
             		{% endif %}
             		<script>

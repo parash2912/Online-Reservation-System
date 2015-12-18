@@ -258,7 +258,8 @@
 					</select>
 					<br>
 					<br>
-					<input type="text" name="tags" value="Enter tags ; separated">
+					<span>Enter tags (; separated)</span>
+					<input type="text" id="tags" name="tags">
 					<br>
 					<script>
 						var startTime = "{{resource.startTime}}";
@@ -289,6 +290,16 @@
 						document.getElementById('endmin').value=endDateTime.getMinutes();
 						document.getElementById('endsec').value=endDateTime.getSeconds();
 						document.getElementById('endampm').value=endampm;
+						var tags = "{{resource.tags[0]}}";
+						var index = 0;
+						{% for tag in resource.tags %}
+							if(index!=0) {
+								tags+=";"+"{{tag}}";
+							}
+							index++;
+						{% endfor %}
+						console.log(tags);
+						document.getElementById('tags').value=tags;
 					</script>
 					<input type="submit" value="create">
 				</form>
@@ -347,8 +358,7 @@
 		{% if page == "currres" %}
 				<div class="divTable">
              		<div class="rowHeading">
-                		<div class="headCol" align="center">Resource Name</div>
-                		<div  class="headCol" align="center">User ID</div>
+                	<!--	<div class="headCol" align="center">Resource Name</div> -->
                 		<div  class="headCol" align="center">User Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">Duration</div>
@@ -356,10 +366,9 @@
             		
                 {% for reservation in resource_reservations %}
 						<div class="divRow" id="resrow{{reservation.UUID}}">
-                  		<div class="divCell" align="center"><form id='form-{{reservation.resource_UUID}}'action="/resourcePage" method="GET">
+                  	<!--	<div class="divCell" align="center"><form id='form-{{reservation.resource_UUID}}'action="/resourcePage" method="GET">
                   		<input type="hidden" name="UUID" value={{reservation.resource_UUID}}>
-                  		<a href="#" onclick="document.getElementById('form-{{reservation.resource_UUID}}').submit()">{{reservation.resource_name}}</a></form></div>
-                			<div class="divCell" align="center">{{reservation.user.identity}}</div>
+                  		<a href="#" onclick="document.getElementById('form-{{reservation.resource_UUID}}').submit()">{{reservation.resource_name}}</a></form></div> -->
                 			<div class="divCell" align="center">{{reservation.user.email}}</div>
                 			<div class="divCell" align="center">{{reservation.startTime}}</div>
                 			<div class="divCell" align="center">{{reservation.duration}}</div>
