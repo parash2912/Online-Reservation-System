@@ -6,8 +6,13 @@ import uuid
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from datetime import datetime
+from email import utils
+import time
 from datetime import timedelta
 from time import sleep
+from xml.etree.ElementTree import Element, SubElement, Comment
+from xml.etree import ElementTree
+from xml.dom import minidom
 
 import webapp2
 import jinja2
@@ -18,6 +23,14 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 	autoescape=True)
 
 DEFAULT_RESOURCEBOOK_NAME = 'ROOT'
+
+def prettify(elem):
+    """Return a pretty-printed XML string for the Element.
+    """
+    rough_string = ElementTree.tostring(elem, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+
 
 def resourcebook_key(resourcebook_name=DEFAULT_RESOURCEBOOK_NAME):
     """Constructs a Datastore key for a Guestbook entity.
@@ -38,6 +51,8 @@ class Resources(ndb.Model):
     endTime=ndb.DateTimeProperty(auto_now_add=False)
     lastReservedTime=ndb.DateTimeProperty(auto_now_add=False)
     tags=ndb.StringProperty(repeated=True)
+    creationTime=ndb.DateTimeProperty(auto_now_add=True)
+    reservation_Num=ndb.IntegerProperty(indexed=False)
 
 class Reservations(ndb.Model):
     UUID=ndb.StringProperty(indexed=True)
@@ -49,6 +64,7 @@ class Reservations(ndb.Model):
     endTime=ndb.DateTimeProperty(auto_now_add=False)
     """
     duration=ndb.StringProperty(indexed=False)
+    creationTime=ndb.DateTimeProperty(auto_now_add=True)
     
 class MainPage(webapp2.RequestHandler) :
     def get(self):
@@ -57,7 +73,7 @@ class MainPage(webapp2.RequestHandler) :
         currYear = datetime.now().year
         resources_query=Resources.query().order(-Resources.lastReservedTime)
         allresources=resources_query.fetch()
-        reservation_query = Reservations.query()
+        reservation_query = Reservations.query().order(Reservations.startTime)
         allreservations=reservation_query.fetch()
         userclicked=self.request.get('userclicked')
         resUUID = self.request.get('resUUID');
@@ -102,6 +118,8 @@ class ResourcePage(webapp2.RequestHandler):
     def get(self):
         UUID=self.request.get('UUID')
         page=self.request.get('page')
+        if page == "":
+            page="currres"
         resource_query = Resources.query(Resources.UUID==UUID)
         resource = resource_query.fetch()
         reservation_query = Reservations.query(Reservations.resource_UUID==resource[0].UUID)
@@ -143,7 +161,7 @@ class ResourcePage(webapp2.RequestHandler):
             'page': page,
             'available_times': available_times,
             'curryear': currYear,
-            'resource_reservations': reservations
+            'resource_reservations': reservations,
         }
         template = JINJA_ENVIRONMENT.get_template('resourcePage.html')
         self.response.write(template.render(template_values))
@@ -183,6 +201,7 @@ class ReserveAdd(webapp2.RequestHandler):
         resource_query = Resources.query(Resources.UUID==resource_UUID)
         resource = resource_query.fetch()
         resource[0].lastReservedTime = datetime.now()
+        resource[0].reservation_Num = resource[0].reservation_Num + 1
         resource[0].put()
         sleep(2)
         page="myres"
@@ -198,6 +217,75 @@ class TagsPage(webapp2.RequestHandler):
             'resources': resources,
         }
         template = JINJA_ENVIRONMENT.get_template('tagsPage.html')
+        self.response.write(template.render(template_values))
+
+class RSSPage(webapp2.RequestHandler):
+    def get(self):
+        resUUID = self.request.get('resource_UUID')
+        reservations_query = Reservations.query(Reservations.resource_UUID == resUUID)
+        reservations = reservations_query.fetch()
+
+        resource_query = Resources.query(Resources.UUID == resUUID)
+        resource = resource_query.fetch()
+
+        root = Element('rss')
+        root.set('version', '2.0')
+
+        if len(reservations) != 0:
+            comment = Comment("rss Page for" + reservations[0].resource_name)
+            root.append(comment)
+
+        channel = SubElement(root, 'channel')
+        title = SubElement(channel, 'title')
+        title.text = "RSS for "+resource[0].name
+        description = SubElement(channel, 'description')
+        description.text = "Owner: "+resource[0].owner.email+", Start Time: "+resource[0].startTime.strftime("%Y-%B-%d %H:%M:%S %z")+", End Time: "+resource[0].endTime.strftime("%Y-%B-%d %H:%M:%S %z")
+        link = SubElement(channel, 'link')
+        urlstring = str(self.request.url)
+        urlstringlist = urlstring.split('/')
+        urlstringlist.remove(urlstringlist[len(urlstringlist)-1])
+        url = "/".join(urlstringlist)
+        url += "/resourcePage?UUID="+resUUID
+        
+        link.text = url
+        lastBuildDateStr = resource[0].lastReservedTime
+        if lastBuildDateStr is None:
+            lastBuildDateStr = resource[0].creationTime
+        
+        lastBuildDate = SubElement(channel,'lastBuildDate')
+        lbdtuple = lastBuildDateStr.timetuple()
+        lbdstamp = time.mktime(lbdtuple)
+        lastBuildDate.text = utils.formatdate(lbdstamp)
+
+        pubDate = SubElement(channel, 'pubDate')
+        pubDateStr = resource[0].creationTime
+        pubtuple = pubDateStr.timetuple()
+        pubstamp = time.mktime(pubtuple)
+        pubDate.text = utils.formatdate(pubstamp)
+
+        index = 0
+        for reservation in reservations:
+            index = index + 1
+            item = SubElement(channel, 'item')
+            itemTitle = SubElement(item,'title')
+            itemTitle.text = "Reservation "+str(index);
+            itemDescription = SubElement(item, 'description')
+            itemDescription.text = "Reserved By: "+reservation.user.email+" Reservation Time: "+reservation.startTime.strftime("%Y-%B-%d %H:%M:%S %z")+" Duration: "+reservation.duration
+            itemLink = SubElement(item,'link')
+            itemLink.text=url
+            itemGuid = SubElement(item,'guid')
+            itemGuid.set('isPermaLink', 'false')
+            itemGuid.text = reservation.UUID
+            itemPubDate = SubElement(item,'pubDate')
+            itemPubDateStr = reservation.creationTime
+            itemPubtuple = itemPubDateStr.timetuple()
+            itemPubstamp = time.mktime(itemPubtuple)
+            itemPubDate.text = utils.formatdate(itemPubstamp)
+
+        template_values = {
+            'rssfeed': prettify(root)    
+        }
+        template = JINJA_ENVIRONMENT.get_template('rssPage.html')
         self.response.write(template.render(template_values))
 
 class ResourceAdd(webapp2.RequestHandler):
@@ -235,6 +323,7 @@ class ResourceAdd(webapp2.RequestHandler):
         resource.endTime=endDateTime24
         resource.UUID=str(uuid.uuid4())
         resource.tags=taglist
+        resource.reservation_Num=0
         resource.put()
         sleep(2)
         page="allres"
@@ -248,4 +337,5 @@ app = webapp2.WSGIApplication([
     ('/reserve',ReserveAdd),
     ('/editres',ResourceAdd),
     ('/tag',TagsPage),
+    ('/rss',RSSPage),
 ],debug=True)

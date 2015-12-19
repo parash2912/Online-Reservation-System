@@ -132,9 +132,8 @@
 						var strtampm = document.getElementById('strtampm').value;
 						var endampm = document.getElementById('endampm').value;
 						var strthr = document.getElementById('strthr').value;
-						console.log(strtampm);
 						strthrInt = parseInt(strthr);
-						if(strtampm == "PM") {
+						if(strtampm == "PM" && strthrInt != 12) {
 							strthrInt += 12;
 						}
 						//strthr = strthrInt;
@@ -147,7 +146,7 @@
 						var endhr = document.getElementById('endhr').value;
 						console.log(endampm);
 						endhrInt = parseInt(endhr);
-						if(endampm == "PM") {
+						if(endampm == "PM" && endhrInt != 12) {
 							endhrInt += 12;
 						}
 						//endhr = endhrInt;
@@ -183,7 +182,7 @@
                 		<div  class="headCol" align="center">Owner Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">End Time</div>
-                		<div class="headCol" align="center">Last Reserved</div>
+                		<div class="headCol" align="center">Total Reservations</div>
                 		<div class="headCol" align="center">Tags</div>
              		</div>
             	
@@ -200,13 +199,13 @@
                   		<a href="#" onclick="document.getElementById('formuser-{{resource.UUID}}').submit()">{{resource.owner.email}}</a></form></div>
                 		<div class="divCell" align="center">{{resource.startTime}}</div>
                 		<div class="divCell" align="center">{{resource.endTime}}</div>
-                		<div class="divCell" align="center">{{resource.lastReservedTime}}</div>
-
+                		<div class="divCell" align="center">{{resource.reservation_Num}}</div>
                 		<div class="divCell" align="center">
                 		{% for tag in resource.tags %}
                 			<a href="/tag?tag={{tag}}">{{tag}};</a>
                   		{% endfor %}
                   		</div>
+                  		<div class="divCell" align="center"> <a href="/rss?resource_UUID={{resource.UUID}}">rss</a> </div>
             		</div>
 				{% endfor %}
 				</div>
@@ -218,8 +217,9 @@
                 		<div class="headCol" align="center">Resource Name</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">End Time</div>
+                		<div class="headCol" align="center">Total Reservations</div>
                 		<div class="headCol" align="center">Tags</div>
-             		</div>
+                	</div>
             		
                 {% for resource in allresources %}
 					{% if resource.owner.email == user.email() %}	
@@ -229,11 +229,13 @@
                   			<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a></form></div>
                 			<div class="divCell" align="center">{{resource.startTime}}</div>
                 			<div class="divCell" align="center">{{resource.endTime}}</div>
-            				<div class="divCell" align="center">
+            				<div class="divCell" align="center">{{resource.reservation_Num}}</div>
+                  			<div class="divCell" align="center">
                 				{% for tag in resource.tags %}
                 					<a href="/tag?tag={{tag}}">{{tag}};</a>
                   				{% endfor %}
                   			</div>
+                  			<div class="divCell" align="center"> <a href="/rss?resource_UUID={{resource.UUID}}">rss</a> </div>
                   		</div>
             		{% endif %}
 				{% endfor %}
