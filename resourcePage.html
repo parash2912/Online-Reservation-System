@@ -31,6 +31,10 @@
 	</div>
 	<div class="leaveMargin">
 		{% if page == "res" %}
+			<div>
+				Number of reservations: {{resource.reservation_Num}}
+			</div>
+	
 			<form action="/reserve" id="reserve-form" method="post" onsubmit="return validate()">
 				Available Times (start-hours:start-minutes:start-seconds - end-hours:end-minutes:end-seconds):
 				<span id="AvailTimes"></span> 
@@ -91,6 +95,8 @@
 					if(currHours > 12) {
 						currHours -= 12;
 						currampm = "PM";
+					} else if(currHours == 12) {
+						currampm = "PM"
 					}
 						
 					{% for timeTuple in available_times %}
@@ -105,10 +111,14 @@
 						if(startHours > 12) {
 							startHours -= 12;
 							startampm = "PM";
+						} else if(startHours == 12) {
+							startampm = "PM"
 						}
 						if(endHours > 12) {
 							endHours -= 12;
 							endampm = "PM";
+						} else if(endHours == 12) {
+							endampm = "PM"
 						}
 						if(startDateTime < currTime) {
 							if(endDateTime < currTime) {
@@ -141,8 +151,11 @@
 						var strtsecs = document.getElementById('strtsecs').value;
 						var strtampm = document.getElementById('strtampm').value;
 						var strthrsInt = parseInt(strthrs);
-						if(strtampm == "PM"){
+						if(strtampm == "PM" && strthrsInt != 12){
 							strthrsInt += 12;
+						}
+						if(strthrsInt == 12 && strtampm == "AM") {
+							strthrsInt -= 12;
 						}
 						var date = document.getElementById('resource_date').value;
 						var date1=date.split('/').join('-');
@@ -356,6 +369,10 @@
 		{% endif %}
 
 		{% if page == "currres" %}
+				<div>
+					Number of reservations: {{resource.reservation_Num}}
+				</div>
+	
 				<div class="divTable">
              		<div class="rowHeading">
                 	<!--	<div class="headCol" align="center">Resource Name</div> -->
