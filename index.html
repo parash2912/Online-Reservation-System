@@ -7,8 +7,7 @@
 </head>
 	<body>
 		<div class="container">
-
-  			<ul class="nav nav-tabs">
+			<ul class="nav nav-tabs">
   				<li class=
   				{% if page == "myres" %}
   					active
@@ -45,11 +44,28 @@
 					document.getElementById('myresotab').href="?userclicked=yes&user_email={{user.email()}}&page=myreso";
 				{% endif %}
 			</script>
-		<a href="{{url|safe}}">{{ url_linktext }}</a>
-
+		
 		</div>
+		<span id="rightal">
+     	   	<form id="search" action="/search" method="post">
+            	Search:
+            	<input id="searchbox" type="text" name="resName" value="Enter resource name to search" onclick="clearBox()">
+            	<script>
+                	var clearBox=function() {
+                    	document.getElementById('searchbox').value="";
+                	} 
+            	</script>
+        	</form> 
+    	</span>
+		<a href="{{url|safe}}">{{ url_linktext }}</a>
+		
+		<br>
+		<br>
+		<br>
+		
 		<div class="leaveMargin">
 			{% if page == "createres" %}
+			<br>
 				<form id="createres-form" action="/createres" method="post" onsubmit="return validate()">
 					Resource Name: <input type="text" name="resourceName" required>
 					<br>
@@ -174,7 +190,7 @@
 					}
 				</script>
 			{% endif %}
-
+			<div class="leftal">
 			{% if page == "allres" %}
 				<div class="divTable">
              		<div class="rowHeading">
@@ -184,6 +200,7 @@
                 		<div class="headCol" align="center">End Time</div>
                 		<div class="headCol" align="center">Total Reservations</div>
                 		<div class="headCol" align="center">Tags</div>
+                		<div class="headCol" align="center"></div>
              		</div>
             	
                 {% for resource in allresources %}
@@ -300,6 +317,7 @@
 				{% endfor %}
 				</div>
 			{% endif %}
+		</div>
 		</div>
 	</body>
 </html>

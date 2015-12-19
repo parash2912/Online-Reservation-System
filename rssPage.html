@@ -6,9 +6,22 @@
   <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
 </head>
 <body>
+<div class="container">
+	<ul class="nav nav-tabs">
+		<li><a href="/">Home</a></li>
+	</ul>
+</div>
+<div>
+	<a href="{{url|safe}}">{{ url_linktext }}</a>
+</div>
+<br>
+<br>
+<br>
+<div class="leftal">
 <pre>
 {{rssfeed}}
 </pre>
+</div>
 </body>
 </html>
 {% endautoescape %}

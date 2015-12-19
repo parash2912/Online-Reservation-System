@@ -29,12 +29,28 @@
   		</ul>
 		<a href="{{url|safe}}">{{ url_linktext }}</a>
 	</div>
+	<span id="rightal">
+        <form id="search" action="/search" method="post">
+            Search:
+            <input id="searchbox" type="text" name="resName" value="Enter resource name to search" onclick="clearBox()">
+            <script>
+                var clearBox=function() {
+                    document.getElementById('searchbox').value="";
+                } 
+            </script>
+        </form> 
+    </span>
+    {% if page != "edit" %}
+    	<br>
+		<div class="leftal">
+			Number of reservations: {{resource.reservation_Num}}
+		</div>
+		<br>
+		<br>
+    {% endif %}
 	<div class="leaveMargin">
 		{% if page == "res" %}
-			<div>
-				Number of reservations: {{resource.reservation_Num}}
-			</div>
-	
+
 			<form action="/reserve" id="reserve-form" method="post" onsubmit="return validate()">
 				Available Times (start-hours:start-minutes:start-seconds - end-hours:end-minutes:end-seconds):
 				<span id="AvailTimes"></span> 
@@ -201,6 +217,8 @@
 		{% endif %}
 
 		{% if page == "edit" %}
+				<br>
+				<br>
 				<form id="editres-form" action="/editres" method="post" onsubmit="return validate()">
 					<input type="hidden" name="UUID" value="{{resource.UUID}}">
 					Resource Name: <input type="text" name="resourceName" value="{{resource.name}}" required>
@@ -325,20 +343,16 @@
 						var strtampm = document.getElementById('strtampm').value;
 						var endampm = document.getElementById('endampm').value;
 						var strthr = document.getElementById('strthr').value;
-						console.log(strtampm);
 						strthrInt = parseInt(strthr);
 						if(strtampm == "PM") {
 							strthrInt += 12;
 						}
-						//strthr = strthrInt;
-						console.log(strthrInt);
 						var strtmin = document.getElementById('strtmin').value;
 						var strtsec = document.getElementById('strtsec').value;
 						var selectedstrtDate = year+'-'+month+'-'+day+' '+strthrInt+':'+strtmin+':'+strtsec;
 						var selstrtDate = new Date(selectedstrtDate);
 						
 						var endhr = document.getElementById('endhr').value;
-						console.log(endampm);
 						endhrInt = parseInt(endhr);
 						if(endampm == "PM") {
 							endhrInt += 12;
@@ -369,13 +383,8 @@
 		{% endif %}
 
 		{% if page == "currres" %}
-				<div>
-					Number of reservations: {{resource.reservation_Num}}
-				</div>
-	
 				<div class="divTable">
              		<div class="rowHeading">
-                	<!--	<div class="headCol" align="center">Resource Name</div> -->
                 		<div  class="headCol" align="center">User Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">Duration</div>
@@ -383,10 +392,7 @@
             		
                 {% for reservation in resource_reservations %}
 						<div class="divRow" id="resrow{{reservation.UUID}}">
-                  	<!--	<div class="divCell" align="center"><form id='form-{{reservation.resource_UUID}}'action="/resourcePage" method="GET">
-                  		<input type="hidden" name="UUID" value={{reservation.resource_UUID}}>
-                  		<a href="#" onclick="document.getElementById('form-{{reservation.resource_UUID}}').submit()">{{reservation.resource_name}}</a></form></div> -->
-                			<div class="divCell" align="center">{{reservation.user.email}}</div>
+                  		<div class="divCell" align="center">{{reservation.user.email}}</div>
                 			<div class="divCell" align="center">{{reservation.startTime}}</div>
                 			<div class="divCell" align="center">{{reservation.duration}}</div>
                 			{% if reservation.user.email == user.email() %}

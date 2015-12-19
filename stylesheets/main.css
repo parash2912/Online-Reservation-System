@@ -56,3 +56,16 @@ body {
         border-spacing:5px;
         font-weight: bold;
     }
+
+.rightal{
+	float: right;
+}
+
+.leftal{
+	float: left;
+	margin-left: 50px;
+}
+
+.container{
+	float: left;
+}
