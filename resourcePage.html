@@ -27,16 +27,48 @@
   			{% endif %}
   			<li><a href="/">Home</a></li>
   		</ul>
-		<a href="{{url|safe}}">{{ url_linktext }}</a>
 	</div>
+	<span id="rightal">
+        <form id="search" action="/search" method="post">
+            Search:
+            <input id="searchbox" type="text" name="resName" value="Resource Name" onclick="clearBox()">
+            <script>
+                var clearBox=function() {
+                    document.getElementById('searchbox').value="";
+                } 
+            </script>
+        </form> 
+    </span>
+    <a href="{{url|safe}}">{{ url_linktext }}</a>
+	<br>
+    <hr>
+    {% if page != "edit" %}
+    	<div class="leftal">
+			Name of resource: {{resource.name}}<br>
+			<form id='formuser-{{resource.UUID}}-resOwn'action="/" method="GET">
+				Resource Owner:
+            	<input type="hidden" name="userclicked" value="yes">
+            	<input type="hidden" name="user_email" value="{{resource.owner.email}}">
+            	<a href="#" onclick="document.getElementById('formuser-{{resource.UUID}}-resOwn').submit()">{{resource.owner.email}}</a></form>
+			Resource Start Time: {{resource.startTime}}<br>
+			Resource End Time: {{resource.endTime}}<br>
+			Number of reservations: {{resource.reservation_Num}}<br>
+			Tags:
+			{% for tag in resource.tags %}
+        		<a href="/tag?tag={{tag}}">{{tag}};</a>
+        	{% endfor %}
+        	<br>
+        	RSS Link: <a href="/rss?resource_UUID={{resource.UUID}}">rss</a> <br>
+		</div>
+		<br><br><br><br><br><br><br>
+		<hr>
+	{% endif %}
+	
 	<div class="leaveMargin">
 		{% if page == "res" %}
-			<div>
-				Number of reservations: {{resource.reservation_Num}}
-			</div>
-	
+			<h2><u>Reserve Resource:</u></h2>
 			<form action="/reserve" id="reserve-form" method="post" onsubmit="return validate()">
-				Available Times (start-hours:start-minutes:start-seconds - end-hours:end-minutes:end-seconds):
+				Available Times {HH:MM:SS (start) - HH:MM:SS (end)}:
 				<span id="AvailTimes"></span> 
 				
 				<br>
@@ -48,37 +80,44 @@
 				<input type="hidden" name="resource_UUID" value="{{resource.UUID}}">
 				<input type="hidden" id="resource_date" name="resource_date" value={{resource_date}}>
 				<input type="hidden" name="resource_name" value="{{resource.name}}">
-				Start Time: <select name="startHours" id="strthrs">
+				Start Time:&nbsp;&nbsp;&nbsp;&nbsp;HH:
+				<select name="startHours" id="strthrs">
 					{% for option in range(1,13) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp; MM:
 				<select name="startMinutes" id="strtmins">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp; SS:
 				<select name="startSeconds" id="strtsecs">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp;
 				<select name="startMorEve" id="strtampm">
 					<option value="AM">AM</option>
 					<option value="PM">PM</option>
 				</select>
 				<br>
 				<p id="durError" style="display: none; color: red">Duration cannot be zero!</p>
-				Duration: <select name="durHours" id="durHours">
+				Duration:&nbsp;&nbsp;&nbsp;&nbsp;HH:
+				<select name="durHours" id="durHours">
 					{% for option in range(13) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp; MM:
 				<select name="durMinutes" id="durMins">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp; SS:
 				<select name="durSeconds" id="durSecs">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
@@ -123,7 +162,6 @@
 						if(startDateTime < currTime) {
 							if(endDateTime < currTime) {
 								{{continue}}
-								console.log("endDateTime");
 							} else {
 								
 								availtable+="<div class=divCell align=center> "+currHours+":"+currTime.getMinutes()+":"+currTime.getSeconds()+" "+currampm+" - "+endHours+":"+endDateTime.getMinutes()+":"+endDateTime.getSeconds()+" "+endampm+" </div>";
@@ -132,7 +170,11 @@
 							availtable+="<div class=divCell align=center> "+startHours+":"+startDateTime.getMinutes()+":"+startDateTime.getSeconds()+" "+startampm+" - "+endHours+":"+endDateTime.getMinutes()+":"+endDateTime.getSeconds()+" "+endampm+"</div> ";
 						}	
 					{% endfor %}
-					availtable+="</div></div>";
+					if(availtable != "<div class=divTable><div class=divRow>") {
+						availtable+="</div></div>";
+					} else {
+						availtable="<h3>No Available Reservation</h3>"
+					}
 					document.getElementById('AvailTimes').innerHTML = availtable;
 								
 					if(startDateTime1.getMonth() == currTime.getMonth() && startDateTime1.getDate() == currTime.getDate() && startDateTime1.getFullYear() == currTime.getFullYear()) {
@@ -142,7 +184,8 @@
 						document.getElementById('strtampm').value = currampm;
 					}
 				</script>
-				<input type="submit" value="reserve">
+				<br>
+				<input type="submit" value="Reserve Resource">
 			</form>
 			<script type="text/javascript">
 					var validate=function(){
@@ -201,26 +244,29 @@
 		{% endif %}
 
 		{% if page == "edit" %}
+				<h2><u>Edit Resource:</u></h2>
+				<br>
+				<br>
 				<form id="editres-form" action="/editres" method="post" onsubmit="return validate()">
 					<input type="hidden" name="UUID" value="{{resource.UUID}}">
 					Resource Name: <input type="text" name="resourceName" value="{{resource.name}}" required>
 					<br>
 					<br>
 					<p id="errorDate" style="display: none; color: red">The entered date-start time combination is smaller than current date. It should be greater!</p>
-					Date: 
+					Date:&nbsp;&nbsp;&nbsp;&nbsp;mm: 
 					
 					<select name="month" id="month">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-
+					&nbsp; - dd:
 					<select name="day" id="day">
 						{% for option in range(1,31) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-						
+					&nbsp; - yyyy:
 					<select name="year" id="year">
 						{% for option in range(curryear,curryear+100) %}
 							<option value={{option}}>{{option}}</option>
@@ -228,21 +274,25 @@
 					</select>
 					<br>
 					<br>
-					Start Time: <select name="startHours" id="strthr">
+					Start Time:&nbsp;&nbsp;&nbsp;&nbsp;HH: 
+					<select name="startHours" id="strthr">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp; MM:
 					<select name="startMinutes" id="strtmin">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp; SS:
 					<select name="startSeconds" id="strtsec">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp;
 					<select name="startMorEve" id="strtampm">
 						<option value="AM">AM</option>
 						<option value="PM">PM</option>
@@ -250,28 +300,32 @@
 					<br>
 					<br>
 					<p id="errorTime" style="display: none; color:red">The entered end time is smaller than start time. It should be greater!</p>
-					End Time: <select name="endHours" id="endhr">
+					End Time:&nbsp;&nbsp;&nbsp;&nbsp;HH: 
+					<select name="endHours" id="endhr">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp; MM:
 					<select name="endMinutes" id="endmin">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp; SS:
 					<select name="endSeconds" id="endsec">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp;
 					<select name="endMorEve" id="endampm">
 						<option value="AM">AM</option>
 						<option value="PM">PM</option>
 					</select>
 					<br>
 					<br>
-					<span>Enter tags (; separated)</span>
+					<span>Enter tags (; separated): </span>
 					<input type="text" id="tags" name="tags">
 					<br>
 					<script>
@@ -311,10 +365,9 @@
 							}
 							index++;
 						{% endfor %}
-						console.log(tags);
 						document.getElementById('tags').value=tags;
 					</script>
-					<input type="submit" value="create">
+					<input type="submit" value="Save">
 				</form>
 				<script type="text/javascript">
 					var validate=function(){
@@ -325,20 +378,16 @@
 						var strtampm = document.getElementById('strtampm').value;
 						var endampm = document.getElementById('endampm').value;
 						var strthr = document.getElementById('strthr').value;
-						console.log(strtampm);
 						strthrInt = parseInt(strthr);
 						if(strtampm == "PM") {
 							strthrInt += 12;
 						}
-						//strthr = strthrInt;
-						console.log(strthrInt);
 						var strtmin = document.getElementById('strtmin').value;
 						var strtsec = document.getElementById('strtsec').value;
 						var selectedstrtDate = year+'-'+month+'-'+day+' '+strthrInt+':'+strtmin+':'+strtsec;
 						var selstrtDate = new Date(selectedstrtDate);
 						
 						var endhr = document.getElementById('endhr').value;
-						console.log(endampm);
 						endhrInt = parseInt(endhr);
 						if(endampm == "PM") {
 							endhrInt += 12;
@@ -367,38 +416,24 @@
 					}
 				</script>
 		{% endif %}
-
+		<br>
 		{% if page == "currres" %}
-				<div>
-					Number of reservations: {{resource.reservation_Num}}
-				</div>
-	
 				<div class="divTable">
              		<div class="rowHeading">
-                	<!--	<div class="headCol" align="center">Resource Name</div> -->
                 		<div  class="headCol" align="center">User Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">Duration</div>
-             		</div>
+                	</div>
             		
                 {% for reservation in resource_reservations %}
 						<div class="divRow" id="resrow{{reservation.UUID}}">
-                  	<!--	<div class="divCell" align="center"><form id='form-{{reservation.resource_UUID}}'action="/resourcePage" method="GET">
-                  		<input type="hidden" name="UUID" value={{reservation.resource_UUID}}>
-                  		<a href="#" onclick="document.getElementById('form-{{reservation.resource_UUID}}').submit()">{{reservation.resource_name}}</a></form></div> -->
-                			<div class="divCell" align="center">{{reservation.user.email}}</div>
-                			<div class="divCell" align="center">{{reservation.startTime}}</div>
+							<div class="divCell" align="center"><form id='formuser-{{resource.UUID}}'action="/" method="GET">
+                  				<input type="hidden" name="userclicked" value="yes">
+                  				<input type="hidden" name="user_email" value="{{reservation.user.email}}">
+                  				<a href="#" onclick="document.getElementById('formuser-{{resource.UUID}}').submit()">{{reservation.user.email}}</a></form></div>
+                  			<div class="divCell" align="center">{{reservation.startTime}}</div>
                 			<div class="divCell" align="center">{{reservation.duration}}</div>
-                			{% if reservation.user.email == user.email() %}
-                				<div class="divCell" align="center">
-                					<form id='formdel-{{reservation.UUID}}'action="/" method="GET">
-                  						<input type="hidden" name="page" value="myres">
-                  						<input type="hidden" name="resUUID" value={{reservation.UUID}}>
-                  						<a href="#" onclick="document.getElementById('formdel-{{reservation.UUID}}').submit()">delete</a>
-                  					</form>
-                  				</div>
-                			{% endif %}
-            			</div>
+                		</div>
             		<script>
             			var currtime = new Date();
             			var startTime = new Date("{{reservation.startTime}}");

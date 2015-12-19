@@ -22,8 +22,6 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 	extensions=['jinja2.ext.autoescape'],
 	autoescape=True)
 
-DEFAULT_RESOURCEBOOK_NAME = 'ROOT'
-
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
     """
@@ -31,21 +29,13 @@ def prettify(elem):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
-
-def resourcebook_key(resourcebook_name=DEFAULT_RESOURCEBOOK_NAME):
-    """Constructs a Datastore key for a Guestbook entity.
-
-    We use guestbook_name as the key.
-    """
-    return ndb.Key('ResourceAdd', resourcebook_name)
-
 class Owner(ndb.Model):
     identity=ndb.StringProperty(indexed=False)
     email=ndb.StringProperty(indexed=False)
 
 class Resources(ndb.Model):
     UUID=ndb.StringProperty(indexed=True)
-    name=ndb.StringProperty(indexed=False)
+    name=ndb.StringProperty(indexed=True)
     owner=ndb.StructuredProperty(Owner)
     startTime=ndb.DateTimeProperty(auto_now_add=False)
     endTime=ndb.DateTimeProperty(auto_now_add=False)
@@ -60,9 +50,6 @@ class Reservations(ndb.Model):
     resource_name=ndb.StringProperty(indexed=False)
     user=ndb.StructuredProperty(Owner)
     startTime=ndb.DateTimeProperty(auto_now_add=False)
-    """
-    endTime=ndb.DateTimeProperty(auto_now_add=False)
-    """
     duration=ndb.StringProperty(indexed=False)
     creationTime=ndb.DateTimeProperty(auto_now_add=True)
     
@@ -77,14 +64,6 @@ class MainPage(webapp2.RequestHandler) :
         allreservations=reservation_query.fetch()
         userclicked=self.request.get('userclicked')
         resUUID = self.request.get('resUUID');
-        if resUUID != "":
-            reservation_del_query = Reservations.query(Reservations.UUID==resUUID)
-            reservation_del = reservation_del_query.fetch()
-            reservation_del[0].key.delete()
-            sleep(2)
-            page="myres"
-            query_params = {'page':page}
-            self.redirect('/?'+urllib.urlencode(query_params))
         
         if user:
             url=users.create_logout_url(self.request.uri)
@@ -153,18 +132,24 @@ class ResourcePage(webapp2.RequestHandler):
                         tempTuple2 = (reservation_endTime,timeTuple[1])
                         available_times.append(tempTuple1)
                         available_times.append(tempTuple2)
-                                
-        template_values = {
-            'user': user,
-            'resource': resource[0],
-            'resource_date': date,
-            'page': page,
-            'available_times': available_times,
-            'curryear': currYear,
-            'resource_reservations': reservations,
-        }
-        template = JINJA_ENVIRONMENT.get_template('resourcePage.html')
-        self.response.write(template.render(template_values))
+        if user:
+            url=users.create_logout_url(self.request.uri)
+            url_linktext='Logout'                 
+            template_values = {
+                'user': user,
+                'url': url,
+                'url_linktext': url_linktext,
+                'resource': resource[0],
+                'resource_date': date,
+                'page': page,
+                'available_times': available_times,
+                'curryear': currYear,
+                'resource_reservations': reservations,
+            }
+            template = JINJA_ENVIRONMENT.get_template('resourcePage.html')
+            self.response.write(template.render(template_values))
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
 
 class ReserveAdd(webapp2.RequestHandler):
     def post(self):
@@ -180,18 +165,11 @@ class ReserveAdd(webapp2.RequestHandler):
         durSeconds = self.request.get('durSeconds')
         startTime = startHours+":"+startMinutes+":"+startSeconds+" "+startMorEve
         startDateTime24 = datetime.strptime(resource_date+" "+startTime,"%m/%d/%Y %I:%M:%S %p")
-        """
-        durdelta = timedelta(hours=int(durHours),minutes=int(durMinutes),seconds=int(durSeconds))
-        endDateTime24 = startDateTime24 + durdelta
-        """
         reservation = Reservations()
         reservation.user = Owner(
             identity=users.get_current_user().user_id(),
             email=users.get_current_user().email())
         reservation.startTime=startDateTime24
-        """
-        reservation.endTime=endDateTime24
-        """
         duration=durHours+":"+durMinutes+":"+durSeconds
         reservation.duration=duration
         reservation.UUID=str(uuid.uuid4())
@@ -208,19 +186,51 @@ class ReserveAdd(webapp2.RequestHandler):
         query_params = {'page':page}
         self.redirect('/?'+urllib.urlencode(query_params))
 
+class SearchPage(webapp2.RequestHandler):
+    def post(self):
+        user=users.get_current_user()
+        resName = self.request.get('resName')
+        resources_query = Resources.query(Resources.name == resName)
+        resources = resources_query.fetch()
+        if user:
+            url=users.create_logout_url(self.request.uri)
+            url_linktext='Logout'
+            template_values = {
+                'user': user,
+                'url': url,
+                'url_linktext': url_linktext,
+                'resources': resources,
+            }
+
+            template = JINJA_ENVIRONMENT.get_template('searchPage.html')
+            self.response.write(template.render(template_values))  
+        else:
+            self.redirect(users.create_login_url(self.request.uri))  
+
 class TagsPage(webapp2.RequestHandler):
     def get(self):
+        user=users.get_current_user()
         tag = self.request.get('tag')
         tag_query = Resources.query(Resources.tags==tag)
         resources = tag_query.fetch()
-        template_values = {
-            'resources': resources,
-        }
-        template = JINJA_ENVIRONMENT.get_template('tagsPage.html')
-        self.response.write(template.render(template_values))
+        if user:
+            url=users.create_logout_url(self.request.uri)
+            url_linktext='Logout'
+            template_values = {
+                'user': user,
+                'url': url,
+                'url_linktext': url_linktext,
+                'resources': resources,
+            }
+        
+            template = JINJA_ENVIRONMENT.get_template('tagsPage.html')
+            self.response.write(template.render(template_values))
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
 
 class RSSPage(webapp2.RequestHandler):
     def get(self):
+        user=users.get_current_user()
         resUUID = self.request.get('resource_UUID')
         reservations_query = Reservations.query(Reservations.resource_UUID == resUUID)
         reservations = reservations_query.fetch()
@@ -232,7 +242,7 @@ class RSSPage(webapp2.RequestHandler):
         root.set('version', '2.0')
 
         if len(reservations) != 0:
-            comment = Comment("rss Page for" + reservations[0].resource_name)
+            comment = Comment("rss Page for " + reservations[0].resource_name)
             root.append(comment)
 
         channel = SubElement(root, 'channel')
@@ -282,19 +292,23 @@ class RSSPage(webapp2.RequestHandler):
             itemPubstamp = time.mktime(itemPubtuple)
             itemPubDate.text = utils.formatdate(itemPubstamp)
 
-        template_values = {
-            'rssfeed': prettify(root)    
-        }
-        template = JINJA_ENVIRONMENT.get_template('rssPage.html')
-        self.response.write(template.render(template_values))
+        if user:
+            url=users.create_logout_url(self.request.uri)
+            url_linktext='Logout'
+            template_values = {
+                'user': user,
+                'url': url,
+                'url_linktext': url_linktext,
+                'rssfeed': prettify(root)    
+            }
+            template = JINJA_ENVIRONMENT.get_template('rssPage.html')
+            self.response.write(template.render(template_values))
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
 
 class ResourceAdd(webapp2.RequestHandler):
     def post(self):
         UUID = self.request.get('UUID');
-        if UUID!="":
-            resource_query = Resources.query(Resources.UUID==UUID)
-            resource = resource_query.fetch()
-            resource[0].key.delete()        
         year = self.request.get('year')
         resourceName = self.request.get('resourceName')
         month = self.request.get('month')
@@ -314,17 +328,27 @@ class ResourceAdd(webapp2.RequestHandler):
         startDateTime24 = datetime.strptime(Date+" "+startTime,"%m/%d/%Y %I:%M:%S %p")
         endTime = endHours+":"+endMinutes+":"+endSeconds+" "+endMorEve
         endDateTime24 = datetime.strptime(Date+" "+endTime,"%m/%d/%Y %I:%M:%S %p")
-        resource = Resources()
-        resource.owner=Owner(
-            identity=users.get_current_user().user_id(),
-            email=users.get_current_user().email())
-        resource.name=resourceName
-        resource.startTime=startDateTime24
-        resource.endTime=endDateTime24
-        resource.UUID=str(uuid.uuid4())
-        resource.tags=taglist
-        resource.reservation_Num=0
-        resource.put()
+        if UUID!="":
+            resource_query = Resources.query(Resources.UUID==UUID)
+            resource = resource_query.fetch()
+            resource[0].name=resourceName
+            resource[0].startTime=startDateTime24
+            resource[0].endTime=endDateTime24
+            resource[0].tags=taglist
+            resource[0].put()
+
+        else:
+            resource = Resources()
+            resource.owner=Owner(
+                identity=users.get_current_user().user_id(),
+                email=users.get_current_user().email())
+            resource.name=resourceName
+            resource.startTime=startDateTime24
+            resource.endTime=endDateTime24
+            resource.UUID=str(uuid.uuid4())
+            resource.tags=taglist
+            resource.reservation_Num=0
+            resource.put()
         sleep(2)
         page="allres"
         query_params = {'page':page}
@@ -338,4 +362,5 @@ app = webapp2.WSGIApplication([
     ('/editres',ResourceAdd),
     ('/tag',TagsPage),
     ('/rss',RSSPage),
+    ('/search', SearchPage),
 ],debug=True)

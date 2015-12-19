@@ -11,21 +11,20 @@
   			<li><a href="/">Home</a></li>
   		</ul>
 	</div>
-    
     <span id="rightal">
         <form id="search" action="/search" method="post">
             Search:
-            <input id="searchbox" type="text" name="resName" value="Resource Name" onclick="clearBox()">
+            <input id="searchbox" type="text" name="resName" value="Enter resource name to search" onclick="clearBox()">
             <script>
                 var clearBox=function() {
                     document.getElementById('searchbox').value="";
                 } 
             </script>
         </form>
-        <a href="{{url|safe}}">{{ url_linktext }}</a>
+        <a href="{{url|safe}}">{{ url_linktext }}</a> 
     </span>
     <br>
-    <hr>
+    <br>
     <br>
     <div class="leftal">
 	<div class="divTable">
@@ -36,7 +35,6 @@
      	<div class="headCol" align="center">End Time</div>
      	<div class="headCol" align="center">Last Reserved</div>
      	<div class="headCol" align="center">Tags</div>
-        <div class="headCol" align="center">RSS Link</div>
     </div>
             	
     {% for resource in resources %}

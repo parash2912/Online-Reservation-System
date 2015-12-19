@@ -6,9 +6,32 @@
   <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
 </head>
 <body>
+<div class="container">
+	<ul class="nav nav-tabs">
+		<li><a href="/">Home</a></li>
+	</ul>
+</div>
+<span id="rightal">
+    <form id="search" action="/search" method="post">
+    	Search:
+    	<input id="searchbox" type="text" name="resName" value="Resource Name" onclick="clearBox()">
+        <script>
+        	var clearBox=function() {
+                document.getElementById('searchbox').value="";
+            } 
+        </script>
+    </form>
+    <a href="{{url|safe}}">{{ url_linktext }}</a>
+</span>
+<br>
+<hr>
+<br>
+<br>
+<div class="leftal">
 <pre>
 {{rssfeed}}
 </pre>
+</div>
 </body>
 </html>
 {% endautoescape %}
