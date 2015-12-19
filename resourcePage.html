@@ -162,7 +162,6 @@
 						if(startDateTime < currTime) {
 							if(endDateTime < currTime) {
 								{{continue}}
-								console.log("endDateTime");
 							} else {
 								
 								availtable+="<div class=divCell align=center> "+currHours+":"+currTime.getMinutes()+":"+currTime.getSeconds()+" "+currampm+" - "+endHours+":"+endDateTime.getMinutes()+":"+endDateTime.getSeconds()+" "+endampm+" </div>";
@@ -366,7 +365,6 @@
 							}
 							index++;
 						{% endfor %}
-						console.log(tags);
 						document.getElementById('tags').value=tags;
 					</script>
 					<input type="submit" value="Save">

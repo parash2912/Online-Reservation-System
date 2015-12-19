@@ -22,22 +22,12 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 	extensions=['jinja2.ext.autoescape'],
 	autoescape=True)
 
-DEFAULT_RESOURCEBOOK_NAME = 'ROOT'
-
 def prettify(elem):
     """Return a pretty-printed XML string for the Element.
     """
     rough_string = ElementTree.tostring(elem, 'utf-8')
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
-
-
-def resourcebook_key(resourcebook_name=DEFAULT_RESOURCEBOOK_NAME):
-    """Constructs a Datastore key for a Guestbook entity.
-
-    We use guestbook_name as the key.
-    """
-    return ndb.Key('ResourceAdd', resourcebook_name)
 
 class Owner(ndb.Model):
     identity=ndb.StringProperty(indexed=False)
@@ -60,9 +50,6 @@ class Reservations(ndb.Model):
     resource_name=ndb.StringProperty(indexed=False)
     user=ndb.StructuredProperty(Owner)
     startTime=ndb.DateTimeProperty(auto_now_add=False)
-    """
-    endTime=ndb.DateTimeProperty(auto_now_add=False)
-    """
     duration=ndb.StringProperty(indexed=False)
     creationTime=ndb.DateTimeProperty(auto_now_add=True)
     
@@ -190,18 +177,11 @@ class ReserveAdd(webapp2.RequestHandler):
         durSeconds = self.request.get('durSeconds')
         startTime = startHours+":"+startMinutes+":"+startSeconds+" "+startMorEve
         startDateTime24 = datetime.strptime(resource_date+" "+startTime,"%m/%d/%Y %I:%M:%S %p")
-        """
-        durdelta = timedelta(hours=int(durHours),minutes=int(durMinutes),seconds=int(durSeconds))
-        endDateTime24 = startDateTime24 + durdelta
-        """
         reservation = Reservations()
         reservation.user = Owner(
             identity=users.get_current_user().user_id(),
             email=users.get_current_user().email())
         reservation.startTime=startDateTime24
-        """
-        reservation.endTime=endDateTime24
-        """
         duration=durHours+":"+durMinutes+":"+durSeconds
         reservation.duration=duration
         reservation.UUID=str(uuid.uuid4())

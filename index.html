@@ -161,20 +161,16 @@
 						if(strtampm == "PM" && strthrInt != 12) {
 							strthrInt += 12;
 						}
-						//strthr = strthrInt;
-						console.log(strthrInt);
 						var strtmin = document.getElementById('strtmin').value;
 						var strtsec = document.getElementById('strtsec').value;
 						var selectedstrtDate = year+'-'+month+'-'+day+' '+strthrInt+':'+strtmin+':'+strtsec;
 						var selstrtDate = new Date(selectedstrtDate);
 						
 						var endhr = document.getElementById('endhr').value;
-						console.log(endampm);
 						endhrInt = parseInt(endhr);
 						if(endampm == "PM" && endhrInt != 12) {
 							endhrInt += 12;
 						}
-						//endhr = endhrInt;
 						var endmin = document.getElementById('endmin').value;
 						var endsec = document.getElementById('endsec').value;
 						var selectedendDate = year+'-'+month+'-'+day+' '+endhrInt+':'+endmin+':'+endsec;
