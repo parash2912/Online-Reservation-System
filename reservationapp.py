@@ -274,7 +274,7 @@ class RSSPage(webapp2.RequestHandler):
         root.set('version', '2.0')
 
         if len(reservations) != 0:
-            comment = Comment("rss Page for" + reservations[0].resource_name)
+            comment = Comment("rss Page for " + reservations[0].resource_name)
             root.append(comment)
 
         channel = SubElement(root, 'channel')

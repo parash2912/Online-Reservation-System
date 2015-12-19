@@ -27,7 +27,6 @@
   			{% endif %}
   			<li><a href="/">Home</a></li>
   		</ul>
-		<a href="{{url|safe}}">{{ url_linktext }}</a>
 	</div>
 	<span id="rightal">
         <form id="search" action="/search" method="post">
@@ -40,13 +39,26 @@
             </script>
         </form> 
     </span>
-    {% if page != "edit" %}
-    	<br>
-		<div class="leftal">
-			Number of reservations: {{resource.reservation_Num}}
+    <a href="{{url|safe}}">{{ url_linktext }}</a>
+	<br>
+    <hr>
+    <br>
+	{% if page != "edit" %}
+    	<div class="leftal">
+			Name of resource: {{resource.name}}<br>
+			Resource Start Time: {{resource.startTime}}<br>
+			Resource End Time: {{resource.endTime}}<br>
+			Number of reservations: {{resource.reservation_Num}}<br>
+			Tags:
+			{% for tag in resource.tags %}
+        		<a href="/tag?tag={{tag}}">{{tag}};</a>
+        	{% endfor %}
+        	<br>
+        	RSS Link: <a href="/rss?resource_UUID={{resource.UUID}}">rss</a> <br>
 		</div>
-		<br>
-		<br>
+		<br><br><br><br><br><br>
+		<hr>
+		<br><br>
     {% endif %}
 	<div class="leaveMargin">
 		{% if page == "res" %}
@@ -64,37 +76,44 @@
 				<input type="hidden" name="resource_UUID" value="{{resource.UUID}}">
 				<input type="hidden" id="resource_date" name="resource_date" value={{resource_date}}>
 				<input type="hidden" name="resource_name" value="{{resource.name}}">
-				Start Time: <select name="startHours" id="strthrs">
+				Start Time:&nbsp;&nbsp;&nbsp;&nbsp;HH:
+				<select name="startHours" id="strthrs">
 					{% for option in range(1,13) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp; MM:
 				<select name="startMinutes" id="strtmins">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp; SS:
 				<select name="startSeconds" id="strtsecs">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp;
 				<select name="startMorEve" id="strtampm">
 					<option value="AM">AM</option>
 					<option value="PM">PM</option>
 				</select>
 				<br>
 				<p id="durError" style="display: none; color: red">Duration cannot be zero!</p>
-				Duration: <select name="durHours" id="durHours">
+				Duration:&nbsp;&nbsp;&nbsp;&nbsp;HH:
+				<select name="durHours" id="durHours">
 					{% for option in range(13) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp; MM:
 				<select name="durMinutes" id="durMins">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
 					{% endfor %}
 				</select>
+				&nbsp; SS:
 				<select name="durSeconds" id="durSecs">
 					{% for option in range(60) %}
 						<option value={{option}}>{{option}}</option>
@@ -225,20 +244,20 @@
 					<br>
 					<br>
 					<p id="errorDate" style="display: none; color: red">The entered date-start time combination is smaller than current date. It should be greater!</p>
-					Date: 
+					Date:&nbsp;&nbsp;&nbsp;&nbsp;mm: 
 					
 					<select name="month" id="month">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-
+					&nbsp; - dd:
 					<select name="day" id="day">
 						{% for option in range(1,31) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
-						
+					&nbsp; - yyyy:
 					<select name="year" id="year">
 						{% for option in range(curryear,curryear+100) %}
 							<option value={{option}}>{{option}}</option>
@@ -246,21 +265,25 @@
 					</select>
 					<br>
 					<br>
-					Start Time: <select name="startHours" id="strthr">
+					Start Time:&nbsp;&nbsp;&nbsp;&nbsp;HH: 
+					<select name="startHours" id="strthr">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp; MM:
 					<select name="startMinutes" id="strtmin">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp; SS:
 					<select name="startSeconds" id="strtsec">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp;
 					<select name="startMorEve" id="strtampm">
 						<option value="AM">AM</option>
 						<option value="PM">PM</option>
@@ -268,28 +291,32 @@
 					<br>
 					<br>
 					<p id="errorTime" style="display: none; color:red">The entered end time is smaller than start time. It should be greater!</p>
-					End Time: <select name="endHours" id="endhr">
+					End Time:&nbsp;&nbsp;&nbsp;&nbsp;HH: 
+					<select name="endHours" id="endhr">
 						{% for option in range(1,13) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp; MM:
 					<select name="endMinutes" id="endmin">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp; SS:
 					<select name="endSeconds" id="endsec">
 						{% for option in range(60) %}
 							<option value={{option}}>{{option}}</option>
 						{% endfor %}
 					</select>
+					&nbsp;
 					<select name="endMorEve" id="endampm">
 						<option value="AM">AM</option>
 						<option value="PM">PM</option>
 					</select>
 					<br>
 					<br>
-					<span>Enter tags (; separated)</span>
+					<span>Enter tags (; separated): </span>
 					<input type="text" id="tags" name="tags">
 					<br>
 					<script>
@@ -332,7 +359,7 @@
 						console.log(tags);
 						document.getElementById('tags').value=tags;
 					</script>
-					<input type="submit" value="create">
+					<input type="submit" value="Save">
 				</form>
 				<script type="text/javascript">
 					var validate=function(){
