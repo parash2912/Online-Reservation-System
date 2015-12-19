@@ -14,38 +14,39 @@
 
 	</div>
 	<div class="divTable">
-        <div class="rowHeading">
-        	<div class="headCol" align="center">Resource Name</div>
-        	<div  class="headCol" align="center">Owner Email</div>
-        	<div class="headCol" align="center">Start Time</div>
-        	<div class="headCol" align="center">End Time</div>
-        	<div class="headCol" align="center">Last Reserved</div>
-        	<div class="headCol" align="center">Tags</div>
-        </div>
+    <div class="rowHeading">
+     	<div class="headCol" align="center">Resource Name</div>
+     	<div  class="headCol" align="center">Owner Email</div>
+     	<div class="headCol" align="center">Start Time</div>
+     	<div class="headCol" align="center">End Time</div>
+     	<div class="headCol" align="center">Last Reserved</div>
+     	<div class="headCol" align="center">Tags</div>
+    </div>
             	
-        {% for resource in resources %}
-			<div class="divRow">
-          		<div class="divCell" align="center">
-        	   		<form id='form-{{resource.UUID}}'action="/resourcePage" method="GET">
-            	   		<input type="hidden" name="UUID" value={{resource.UUID}}>
-                  		<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a>
-                  	</form>
-               	</div>
-               	<div class="divCell" align="center">
-               		<form id='formuser-{{resource.UUID}}'action="/" method="GET">
-               			<input type="hidden" name="userclicked" value="yes">
-               			<input type="hidden" name="user_email" value="{{resource.owner.email}}">
-                  		<a href="#" onclick="document.getElementById('formuser-{{resource.UUID}}').submit()">{{resource.owner.email}}</a>
-                  	</form>
-                </div>
-                <div class="divCell" align="center">{{resource.startTime}}</div>
-                <div class="divCell" align="center">{{resource.endTime}}</div>
-                <div class="divCell" align="center">{{resource.lastReservedTime}}</div>
-           		<div class="divCell" align="center">
-                	{% for tag in resource.tags %}
-                		<a href="/tag?tag={{tag}}">{{tag}};</a>
-                  	{% endfor %}
-            	</div>
+    {% for resource in resources %}
+		  <div class="divRow">
+      	<div class="divCell" align="center">
+        	<form id='form-{{resource.UUID}}'action="/resourcePage" method="GET">
+         		<input type="hidden" name="UUID" value={{resource.UUID}}>
+         		<a href="#" onclick="document.getElementById('form-{{resource.UUID}}').submit()">{{resource.name}}</a>
+         	</form>
+        </div>
+        <div class="divCell" align="center">
+        	<form id='formuser-{{resource.UUID}}'action="/" method="GET">
+        		<input type="hidden" name="userclicked" value="yes">
+        		<input type="hidden" name="user_email" value="{{resource.owner.email}}">
+         		<a href="#" onclick="document.getElementById('formuser-{{resource.UUID}}').submit()">{{resource.owner.email}}</a>
+         	</form>
+        </div>
+        <div class="divCell" align="center">{{resource.startTime}}</div>
+        <div class="divCell" align="center">{{resource.endTime}}</div>
+        <div class="divCell" align="center">{{resource.lastReservedTime}}</div>
+        <div class="divCell" align="center">
+         	{% for tag in resource.tags %}
+         		<a href="/tag?tag={{tag}}">{{tag}};</a>
+         	{% endfor %}
+        </div>
+        <div class="divCell" align="center"> <a href="/rss?resource_UUID={{resource.UUID}}">rss</a> </div>
 			</div>
 		{% endfor %}
 	</div>			
