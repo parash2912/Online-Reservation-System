@@ -31,7 +31,7 @@
 	<span id="rightal">
         <form id="search" action="/search" method="post">
             Search:
-            <input id="searchbox" type="text" name="resName" value="Enter resource name to search" onclick="clearBox()">
+            <input id="searchbox" type="text" name="resName" value="Resource Name" onclick="clearBox()">
             <script>
                 var clearBox=function() {
                     document.getElementById('searchbox').value="";
@@ -42,10 +42,14 @@
     <a href="{{url|safe}}">{{ url_linktext }}</a>
 	<br>
     <hr>
-    <br>
-	{% if page != "edit" %}
+    {% if page != "edit" %}
     	<div class="leftal">
 			Name of resource: {{resource.name}}<br>
+			<form id='formuser-{{resource.UUID}}-resOwn'action="/" method="GET">
+				Resource Owner:
+            	<input type="hidden" name="userclicked" value="yes">
+            	<input type="hidden" name="user_email" value="{{resource.owner.email}}">
+            	<a href="#" onclick="document.getElementById('formuser-{{resource.UUID}}-resOwn').submit()">{{resource.owner.email}}</a></form>
 			Resource Start Time: {{resource.startTime}}<br>
 			Resource End Time: {{resource.endTime}}<br>
 			Number of reservations: {{resource.reservation_Num}}<br>
@@ -56,15 +60,15 @@
         	<br>
         	RSS Link: <a href="/rss?resource_UUID={{resource.UUID}}">rss</a> <br>
 		</div>
-		<br><br><br><br><br><br>
+		<br><br><br><br><br><br><br>
 		<hr>
-		<br><br>
-    {% endif %}
+	{% endif %}
+	
 	<div class="leaveMargin">
 		{% if page == "res" %}
-
+			<h2><u>Reserve Resource:</u></h2>
 			<form action="/reserve" id="reserve-form" method="post" onsubmit="return validate()">
-				Available Times (start-hours:start-minutes:start-seconds - end-hours:end-minutes:end-seconds):
+				Available Times {HH:MM:SS (start) - HH:MM:SS (end)}:
 				<span id="AvailTimes"></span> 
 				
 				<br>
@@ -167,7 +171,11 @@
 							availtable+="<div class=divCell align=center> "+startHours+":"+startDateTime.getMinutes()+":"+startDateTime.getSeconds()+" "+startampm+" - "+endHours+":"+endDateTime.getMinutes()+":"+endDateTime.getSeconds()+" "+endampm+"</div> ";
 						}	
 					{% endfor %}
-					availtable+="</div></div>";
+					if(availtable != "<div class=divTable><div class=divRow>") {
+						availtable+="</div></div>";
+					} else {
+						availtable="<h3>No Available Reservation</h3>"
+					}
 					document.getElementById('AvailTimes').innerHTML = availtable;
 								
 					if(startDateTime1.getMonth() == currTime.getMonth() && startDateTime1.getDate() == currTime.getDate() && startDateTime1.getFullYear() == currTime.getFullYear()) {
@@ -177,7 +185,8 @@
 						document.getElementById('strtampm').value = currampm;
 					}
 				</script>
-				<input type="submit" value="reserve">
+				<br>
+				<input type="submit" value="Reserve Resource">
 			</form>
 			<script type="text/javascript">
 					var validate=function(){
@@ -236,6 +245,7 @@
 		{% endif %}
 
 		{% if page == "edit" %}
+				<h2><u>Edit Resource:</u></h2>
 				<br>
 				<br>
 				<form id="editres-form" action="/editres" method="post" onsubmit="return validate()">
@@ -408,19 +418,23 @@
 					}
 				</script>
 		{% endif %}
-
+		<br>
 		{% if page == "currres" %}
 				<div class="divTable">
              		<div class="rowHeading">
                 		<div  class="headCol" align="center">User Email</div>
                 		<div class="headCol" align="center">Start Time</div>
                 		<div class="headCol" align="center">Duration</div>
+                		<div class="headCol" align="center">Delete Link</div>
              		</div>
             		
                 {% for reservation in resource_reservations %}
 						<div class="divRow" id="resrow{{reservation.UUID}}">
-                  		<div class="divCell" align="center">{{reservation.user.email}}</div>
-                			<div class="divCell" align="center">{{reservation.startTime}}</div>
+							<div class="divCell" align="center"><form id='formuser-{{resource.UUID}}'action="/" method="GET">
+                  				<input type="hidden" name="userclicked" value="yes">
+                  				<input type="hidden" name="user_email" value="{{reservation.user.email}}">
+                  				<a href="#" onclick="document.getElementById('formuser-{{resource.UUID}}').submit()">{{reservation.user.email}}</a></form></div>
+                  			<div class="divCell" align="center">{{reservation.startTime}}</div>
                 			<div class="divCell" align="center">{{reservation.duration}}</div>
                 			{% if reservation.user.email == user.email() %}
                 				<div class="divCell" align="center">
